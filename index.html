@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="description" content="A simple, private monthly budget and personal finance journal: income, expenses, savings goals, debts, and a financial calendar.">
+<meta name="theme-color" content="#FAF8F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161915" media="(prefers-color-scheme: dark)">
+<title>Personal Finance Journal</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2044%2044%27%3E%3Crect%20width%3D%2744%27%20height%3D%2744%27%20rx%3D%2712%27%20fill%3D%27%23F6F2EA%27%2F%3E%3Cpath%20d%3D%27M16%2040%20C17%2031%2019%2024%2024%2017%27%20stroke%3D%27%234A7A5F%27%20stroke-width%3D%272.2%27%20fill%3D%27none%27%20stroke-linecap%3D%27round%27%2F%3E%3Cpath%20d%3D%27M22%2020%20C21%2010%2028%204%2040%203%20C41%2015%2034%2022%2022%2020Z%27%20fill%3D%27%236F9E82%27%2F%3E%3Cpath%20d%3D%27M18%2027%20C15%2018%208%2015%202%2016%20C2%2025%209%2030%2018%2027Z%27%20fill%3D%27%236F9E82%27%20opacity%3D%27.75%27%2F%3E%3C%2Fsvg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kaban">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script src="js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,400..700,0..100;1,9..144,400..700,0..100&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="authRoot" hidden></div>
+<div id="onboardRoot" hidden></div>
+<div id="app" hidden>
+  <aside class="sidebar">
+    <div class="brand">
+      <span data-brand-logo></span>
+      <div class="brand-text"><div class="brand-name" data-app-name></div><div class="brand-tag">Personal finance</div></div>
+    </div>
+    <nav class="navlist" id="navList" aria-label="Main"></nav>
+    <div class="sidebar-art" id="sidebarArt">
+      <div class="sidebar-foot" id="sidebarFootText"></div>
+    </div>
+  </aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar">
+      <div class="topbar-left">
+        <div class="brand"><span data-brand-logo></span><div class="brand-text"><div class="brand-name" data-app-name></div></div></div>
+        <div class="month-switcher">
+          <button class="ms-btn" id="prevMonthBtn" aria-label="Previous month"></button>
+          <button class="ms-label" id="monthLabelBtn" aria-label="Choose month"><span id="msMonthLabel">January</span> <span class="yr" id="msYearLabel">2026</span></button>
+          <button class="ms-btn" id="nextMonthBtn" aria-label="Next month"></button>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="sync-status mobile-only" data-sync-status role="status" aria-live="polite"></div>
+        <div id="topChips" class="topbar-right"></div>
+        <button class="btn btn-primary add-btn" id="addBtn" aria-label="Add"></button>
+        <button class="bell-btn" id="alertBtn" aria-label="Alerts"></button>
+        <button class="avatar-btn" id="avatarBtn" aria-label="Account menu"></button>
+      </div>
+    </header>
+    <main id="mainContent"></main>
+  </div>
+  <nav class="bottom-nav" id="bottomNav" aria-label="Main"></nav>
+</div>
+<div id="modalRoot"></div>
+<div id="dialogRoot"></div>
+<div id="pickerRoot"></div>
+<div id="popoverRoot"></div>
+<div class="toast-host" id="toastHost" aria-live="polite"></div>
+<noscript><p style="padding:40px;font-family:sans-serif;">This app needs JavaScript enabled.</p></noscript>
+
+<script src="vendor/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@1.52.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<script src="js/cloud.js"></script>
+</body>
+</html>
