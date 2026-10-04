@@ -1050,3 +1050,9 @@ body{font-feature-settings:'cv11','ss01','tnum' 0;}
 .donut-center b{font-size:clamp(15px, 1.25vw, 19px);font-weight:700;letter-spacing:-0.01em;}
 .donut-center span{font-size:12px;margin-top:2px;}
 .donut-center{padding:0 22%;}
+/* Hero figures: a notch smaller so long amounts never crowd the divider */
+.hero-card .hero-amount,.hero-body.secondary .hero-amount{font-size:clamp(18px, 1.55vw, 24px);white-space:nowrap;}
+.hero-card .badge-ic.xl{width:52px;height:52px;}
+.hero-card .badge-ic.xl .ic{width:24px;height:24px;}
+.hero-card .hero-label{font-size:14px;}
+.hero-card .hero-sub{font-size:12.5px;}
