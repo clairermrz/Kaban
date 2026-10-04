@@ -1084,3 +1084,12 @@ body{font-feature-settings:'cv11','ss01','tnum' 0;}
   .m-full{display:none;}
   .m-short{display:inline;}
 }
+
+/* Budget rows share one column grid (subgrid) so every bar starts and ends at the same place,
+   however long each row's amounts are. */
+.budget-rows{display:grid;grid-template-columns:40px minmax(90px,1.1fr) 44px minmax(80px,1.5fr) auto;column-gap:14px;row-gap:6px;}
+.budget-rows > .budget-row{grid-column:1 / -1;display:grid;grid-template-columns:subgrid;column-gap:14px;}
+@media(max-width:640px){
+  .budget-rows{display:flex;flex-direction:column;}
+  .budget-rows > .budget-row{grid-template-columns:36px minmax(0,1fr) auto;}
+}
