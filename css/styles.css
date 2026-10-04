@@ -1030,3 +1030,14 @@ body{font-feature-settings:'cv11','ss01','tnum' 0;}
 }
 
 @media(max-width:640px){ .list-row.exp-row > .exp-actions{display:flex !important;} }
+
+/* Hero: Available to Budget + Available Cash side by side */
+.hero-split{width:1px;align-self:stretch;background:var(--border);margin:4px 2px;position:relative;z-index:1;}
+.hero-body.secondary .hero-amount{font-size:26px;}
+.hero-amount.neg{color:var(--danger-ink);}
+@media(max-width:640px){
+  .hero-card{flex-wrap:wrap;}
+  .hero-split{width:100%;height:1px;margin:0;align-self:auto;}
+  .hero-body.secondary{padding-left:0;}
+}
+.hero-art{width:24%;max-width:150px;opacity:.85;}

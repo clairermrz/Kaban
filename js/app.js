@@ -1625,6 +1625,12 @@ function viewDashboard(key){
           <div class="hero-amount">${money(calc.budgetableIncome)}</div>
           <div class="hero-sub">after debt payments</div>
         </div>
+        <span class="hero-split" aria-hidden="true"></span>
+        <div class="hero-body secondary" title="Cash received (income + borrowed) minus expenses, savings, and debt payments">
+          <div class="hero-label">Available Cash</div>
+          <div class="hero-amount ${calc.netCashFlow<0?'neg':''}">${money(calc.netCashFlow)}</div>
+          <div class="hero-sub">after spending &amp; saving</div>
+        </div>
         <div class="hero-art">${heroArtSVG()}</div>
       </div>
       ${kpiCard('Total Income', 'wallet', 'save', calc.totalIncome, deltaInfo(calc.totalIncome, prev && prev.totalIncome, true), 'income')}
