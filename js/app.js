@@ -3907,7 +3907,20 @@ function installApp(){
   askDialog({title:'Install on your phone', message:steps, icon:'smartphone', confirmLabel:'Got it', hideCancel:true});
 }
 if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost' || location.hostname==='127.0.0.1')){
-  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+  // When a new version of the app takes over, reload once so the update shows immediately.
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloadedForUpdate = false;
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    if(!hadController || reloadedForUpdate) return;
+    reloadedForUpdate = true;
+    location.reload();
+  });
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).then(reg=>{
+      // Check for a newer version whenever the app is reopened or brought back to the front.
+      document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') reg.update().catch(()=>{}); });
+    }).catch(()=>{});
+  });
 }
 
 /* ---------- Modal: Expense ---------- */
