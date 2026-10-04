@@ -1056,3 +1056,9 @@ body{font-feature-settings:'cv11','ss01','tnum' 0;}
 .hero-card .badge-ic.xl .ic{width:24px;height:24px;}
 .hero-card .hero-label{font-size:14px;}
 .hero-card .hero-sub{font-size:12.5px;}
+/* KPI tile figures: smaller, never wrap mid-number; the change badge drops below when space runs out */
+.kpi-value{font-size:clamp(17px, 1.35vw, 21px);white-space:nowrap;}
+.kpi-label{font-size:13.5px;}
+.kpi-card .badge-ic.lg{width:40px;height:40px;}
+.kpi-card .badge-ic.lg .ic{width:19px;height:19px;}
+.kpi-bottom{row-gap:6px;}
