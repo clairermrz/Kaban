@@ -1724,7 +1724,7 @@ function spendingBreakdown(calc){
   const tone = {necessities:'nec', extra:'extra', playjar:'play', debt:'debt'};
   return `<div class="breakdown">
     ${total>0 ? `<div class="donut-wrap"><canvas id="dashDonut" aria-label="Spending breakdown chart"></canvas>
-      <div class="donut-center"><b>${money(total)}</b><span>Total spent<br>(this month)</span></div></div>`
+      <div class="donut-center"><b>${money(Math.round(total))}</b><span>Total spent<br>this month</span></div></div>`
       : `<div class="empty-chart">No spending recorded yet this month</div>`}
     <div class="legend-list">${slices.map(s=>`<div class="legend-item">
       <span class="dot" style="background:var(--c-${tone[s.key]})"></span>
@@ -1743,7 +1743,7 @@ function drawDashboardDonut(){
   chartRegistry['dashDonut'] = new Chart(el, {
     type:'doughnut',
     data:{ labels:slices.map(s=>s.label), datasets:[{data:slices.map(s=>s.amount), backgroundColor:slices.map(s=>bucketColor(s.key)), borderWidth:0, spacing:2, borderRadius:2}] },
-    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%',
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'70%',
       plugins:{ legend:{display:false},
         tooltip:{ callbacks:{ label:(item)=>{
           const total = item.dataset.data.reduce((a,b)=>a+b,0);
@@ -2837,7 +2837,7 @@ function reportOverview(A){
       <div class="card">
         <div class="card-head"><h3 class="card-title">Spending by Category</h3></div>
         ${total>0 ? `<div class="donut-wrap" style="margin:0 auto 14px;width:200px;height:200px;"><canvas id="annualSpendDonut"></canvas>
-          <div class="donut-center"><b style="font-size:19px;">${money(total)}</b><span>spent in total</span></div></div>` : ''}
+          <div class="donut-center"><b>${money(Math.round(total))}</b><span>spent in total</span></div></div>` : ''}
         <div class="legend-list">${slices.map(s=>`<div class="legend-item"><span class="dot" style="background:var(--c-${tone[s.key]})"></span><span>${s.label}</span><span class="lg-pct">${total>0?pct(s.amount/total*100):'—'}</span><span class="lg-amt">${money(s.amount)}</span></div>`).join('')}</div>
       </div>
     </div>

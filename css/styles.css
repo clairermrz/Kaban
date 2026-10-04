@@ -1046,3 +1046,7 @@ body{font-feature-settings:'cv11','ss01','tnum' 0;}
 .hero-card .hero-label,.hero-card .hero-sub{white-space:nowrap;}
 .hero-card .hero-body{flex:1 1 0;min-width:0;}
 .hero-card{gap:18px;}
+/* Donut centre: smaller total so it sits comfortably inside the ring */
+.donut-center b{font-size:clamp(15px, 1.25vw, 19px);font-weight:700;letter-spacing:-0.01em;}
+.donut-center span{font-size:12px;margin-top:2px;}
+.donut-center{padding:0 22%;}
