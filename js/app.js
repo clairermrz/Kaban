@@ -1281,7 +1281,7 @@ function renderShell(){
     navTo(b.dataset.bn);
   };
 
-  document.getElementById('msMonthLabel').textContent = MONTH_NAMES[cur.monthIndex];
+  document.getElementById('msMonthLabel').innerHTML = '<span class="m-full">'+MONTH_NAMES[cur.monthIndex]+'</span><span class="m-short">'+MONTH_NAMES[cur.monthIndex].slice(0,3)+'</span>';
   document.getElementById('msYearLabel').textContent = cur.year;
   const hh = state.settings.householdName;
   document.getElementById('sidebarFootText').innerHTML =

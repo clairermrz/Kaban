@@ -1062,3 +1062,25 @@ body{font-feature-settings:'cv11','ss01','tnum' 0;}
 .kpi-card .badge-ic.lg{width:40px;height:40px;}
 .kpi-card .badge-ic.lg .ic{width:19px;height:19px;}
 .kpi-bottom{row-gap:6px;}
+
+/* Phone top bar: compact month switcher so it never collides with the bell/avatar */
+.m-short{display:none;}
+@media(max-width:900px){
+  .topbar{gap:8px;padding:10px 12px;}
+  .topbar-left{gap:6px;min-width:0;flex:1 1 auto;}
+  .topbar-right{gap:6px;flex-shrink:0;}
+  .topbar .brand{display:none;}
+  .month-switcher{gap:2px;min-width:0;}
+  .ms-btn{width:32px;height:32px;border-radius:10px;}
+  .ms-btn .ic{width:16px;height:16px;}
+  .ms-label{font-size:18px;padding:2px 4px;gap:4px;}
+  .ms-label .ic{width:14px;height:14px;}
+  .bell-btn{width:34px;height:34px;border-radius:10px;}
+  .bell-btn .ic{width:17px;height:17px;}
+  .avatar-btn{width:34px;height:34px;font-size:13px;}
+  .topbar-right .mobile-only{display:none !important;}
+}
+@media(max-width:400px){
+  .m-full{display:none;}
+  .m-short{display:inline;}
+}
