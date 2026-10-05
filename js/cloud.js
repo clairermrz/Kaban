@@ -124,11 +124,12 @@
         <button class="btn btn-primary auth-submit" type="button" data-auth="retry">Try again</button>
         <div class="auth-links"><button type="button" class="linkbtn" data-auth="signout">Sign out</button></div>`;
     }
-    authRoot.innerHTML = `<div class="auth-screen"><div class="auth-card">
+    const scene = (typeof authSceneSVG==='function') ? `<div class="auth-scene"><div class="hand">Good plans,<br>brighter days ♡</div>${authSceneSVG()}</div>` : '';
+    authRoot.innerHTML = `<div class="auth-screen"><div class="auth-split">${scene}<div class="auth-card">
       <div class="brand auth-brand">${typeof brandLogoSVG==='function'?brandLogoSVG():''}<div class="brand-text"><div class="brand-name">${esc(appName)}</div><div class="brand-tag">Personal finance</div></div></div>
       ${inner}
       <p class="auth-foot">Your budget is private to your account. It’s stored securely in the cloud and never shared or sold.</p>
-    </div></div>`;
+    </div></div></div>`;
     authRoot.hidden = false;
     const firstInput = authRoot.querySelector('input'); if(firstInput) firstInput.focus();
     authRoot.querySelectorAll('[data-auth]').forEach(b=> b.addEventListener('click', ()=> onAuthLink(b.dataset.auth)));

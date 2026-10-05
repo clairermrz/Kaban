@@ -1514,31 +1514,108 @@ function sprigSVG(o){
   }
   return out;
 }
+/* ---------- Storybook illustrations (all original, drawn in code) ---------- */
+function WC_FILTER(id, scale){ return `<filter id="${id}"><feTurbulence baseFrequency=".035" numOctaves="2" seed="5"/><feDisplacementMap in="SourceGraphic" scale="${scale||8}"/><feGaussianBlur stdDeviation=".5"/></filter>`; }
+function artCottage(x, y, s){
+  return `<g transform="translate(${x} ${y}) scale(${s})">
+    <rect x="0" y="16" width="44" height="30" fill="#F6E9DA" stroke="#84624A" stroke-width="1.5"/>
+    <path d="M-6 18 L22 -4 L50 18Z" fill="#C9735E" stroke="#84624A" stroke-width="1.5"/>
+    <rect x="33" y="-1" width="5" height="11" fill="#84624A"/>
+    <rect x="17" y="28" width="10" height="18" fill="#84624A"/>
+    <rect x="5" y="22" width="8" height="8" fill="#F6E7C9" stroke="#84624A"/><rect x="31" y="22" width="8" height="8" fill="#F6E7C9" stroke="#84624A"/>
+  </g>`;
+}
+function artTree(x, y, s){
+  return `<g transform="translate(${x} ${y}) scale(${s})"><rect x="-2" y="16" width="4" height="22" fill="#84624A"/><circle cx="0" cy="8" r="16" fill="#627F5F"/><circle cx="-9" cy="14" r="10" fill="#7D9A75"/><circle cx="8" cy="13" r="9" fill="#7D9A75"/></g>`;
+}
+function artCloud(x, y, s){
+  return `<g transform="translate(${x} ${y}) scale(${s})" fill="#fff"><ellipse cx="0" cy="0" rx="34" ry="11"/><ellipse cx="-14" cy="-5" rx="16" ry="10"/><ellipse cx="10" cy="-7" rx="14" ry="9"/></g>`;
+}
+function artBirds(x, y, s){
+  return `<g transform="translate(${x} ${y}) scale(${s})" stroke="#6E665A" stroke-width="1.4" fill="none" stroke-linecap="round"><path d="M0 0 q4 -4 8 0 q4 -4 8 0"/><path d="M20 -9 q3 -3 6 0 q3 -3 6 0"/></g>`;
+}
+function artFlower(x, y, color, s){
+  return `<g transform="translate(${x} ${y}) scale(${s||1})"><path d="M0 30 V8" stroke="#627F5F" stroke-width="1.6"/><path d="M0 22 C-6 20 -8 15 -8 12 C-3 13 0 17 0 22Z" fill="#7D9A75"/><g fill="${color}" ${color==='#FFFBF2'?'stroke="#E8C9A8" stroke-width=".8"':''}><circle cx="0" cy="2" r="3.6"/><circle cx="-4.5" cy="6" r="3.6"/><circle cx="4.5" cy="6" r="3.6"/><circle cx="-2.6" cy="11" r="3.6"/><circle cx="2.6" cy="11" r="3.6"/></g><circle cx="0" cy="6.5" r="2.3" fill="#D9A657"/></g>`;
+}
+/* An ordinary black cat sitting on a stone wall, seen from the side. */
+function artCatOnWall(x, y, s){
+  return `<g transform="translate(${x} ${y}) scale(${s})">
+    <g fill="#E8DCC4" stroke="#B9A684" stroke-width="1"><rect x="-30" y="22" width="22" height="11" rx="2"/><rect x="-7" y="22" width="24" height="11" rx="2"/><rect x="18" y="22" width="20" height="11" rx="2"/><rect x="-20" y="33" width="24" height="11" rx="2"/><rect x="5" y="33" width="25" height="11" rx="2"/></g>
+    <g fill="#3F3A32"><path d="M18 22 C30 18 32 4 26 -4"  stroke="#3F3A32" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="6" cy="12" rx="10" ry="11"/><circle cx="5" cy="-4" r="7"/><path d="M0 -8 L1.5 -15 L5 -10Z"/><path d="M6 -10 L10 -15 L10.5 -8Z"/></g>
+  </g>`;
+}
 function sidebarArtSVG(){
-  // The quote lives inside the drawing so text and leaves scale together at any window height.
-  const serif = "font-family:var(--font-serif);font-style:italic;font-size:17px;fill:var(--text-2);font-variation-settings:'SOFT' 100";
+  const quote = "font-family:var(--font-hand);font-weight:600;font-size:22px;fill:#84624A";
   return `<svg viewBox="0 0 250 330" preserveAspectRatio="xMinYMax meet" aria-hidden="true">
-    <text x="88" y="54" style="${serif}">Small</text>
-    <text x="88" y="78" style="${serif}">steps today</text>
-    <text x="88" y="102" style="${serif}">brighter</text>
-    <text x="88" y="126" style="${serif}">tomorrows.</text>
-    <path transform="translate(92 136) scale(.62)" d="M10 18 C4 13 0 10 0 5.5 C0 2.5 2.4 0 5.4 0 C7.3 0 9 1 10 2.6 C11 1 12.7 0 14.6 0 C17.6 0 20 2.5 20 5.5 C20 10 16 13 10 18Z" fill="none" stroke="var(--c-rose-ink)" stroke-width="2.4"/>
-    <circle cx="196" cy="244" r="22" fill="var(--c-extra)" opacity=".38"/>
-    <path d="M0 266 C40 244 80 242 122 258 S200 282 250 266 L250 330 L0 330Z" fill="var(--c-debt)" opacity=".35"/>
-    <path d="M0 292 C50 276 110 280 160 296 S230 304 250 298 L250 330 L0 330Z" fill="var(--accent)" opacity=".2"/>
-    ${sprigSVG({x:14,y:330,angle:16,len:230,curve:18,leaves:11,size:34,color:'var(--accent)',opacity:.42})}
-    ${sprigSVG({x:44,y:330,angle:38,len:140,curve:-10,leaves:8,size:28,color:'var(--accent)',opacity:.3})}
-    ${sprigSVG({x:0,y:280,angle:62,len:80,curve:6,leaves:5,size:22,color:'var(--accent)',opacity:.25})}
-    ${sprigSVG({x:236,y:330,angle:-14,len:70,curve:6,leaves:5,size:20,color:'var(--accent)',opacity:.3})}
+    <defs>${WC_FILTER('wcSide', 8)}</defs>
+    <g transform="rotate(-4 120 80)"><text x="70" y="56" style="${quote}">Small steps</text><text x="70" y="80" style="${quote}">today,</text><text x="70" y="104" style="${quote}">brighter</text><text x="70" y="128" style="${quote}">days ♡</text></g>
+    ${artBirds(176, 150, 1)}
+    <g filter="url(#wcSide)">
+      ${artCloud(196, 178, .9)}
+      <path d="M0 238 C60 208 130 214 250 226 L250 330 L0 330Z" fill="#A7C4A0" opacity=".8"/>
+      <path d="M0 270 C70 250 150 260 250 254 L250 330 L0 330Z" fill="#8DAE85" opacity=".85"/>
+      ${artCottage(150, 196, .9)}
+      ${artTree(118, 210, .9)}
+      <path d="M0 302 C80 290 170 300 250 294 L250 330 L0 330Z" fill="#7D9A75" opacity=".9"/>
+    </g>
+    ${artCatOnWall(58, 262, .95)}
+    ${artFlower(16, 296, '#E79B8B', 1)}
+    ${artFlower(206, 300, '#FFFBF2', 1)}
+    ${artFlower(228, 302, '#E79B8B', .8)}
   </svg>`;
 }
 function heroArtSVG(){
   return `<svg viewBox="0 0 300 160" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">
-    <path d="M40 160 C90 110 150 96 210 104 C250 110 280 90 300 70 L300 160Z" fill="var(--c-debt)" opacity=".28"/>
-    <path d="M120 160 C170 132 230 128 300 136 L300 160Z" fill="var(--accent)" opacity=".14"/>
-    ${sprigSVG({x:236,y:160,angle:-4,len:118,curve:10,leaves:9,size:26,color:'var(--accent)',opacity:.55})}
-    ${sprigSVG({x:262,y:160,angle:26,len:66,curve:-6,leaves:5,size:18,color:'var(--accent)',opacity:.38})}
+    <defs>${WC_FILTER('wcHero', 7)}</defs>
+    ${artBirds(196, 34, .9)}
+    <g filter="url(#wcHero)" opacity=".9">
+      ${artCloud(250, 46, .7)}
+      <path d="M90 160 C140 126 210 116 300 124 L300 160Z" fill="#A7C4A0" opacity=".65"/>
+      ${artCottage(236, 100, .78)}
+      ${artTree(206, 118, .75)}
+    </g>
   </svg>`;
+}
+function authSceneSVG(){
+  return `<svg viewBox="0 0 400 560" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs>${WC_FILTER('wcAuth', 12)}</defs>
+    ${artBirds(250, 214, 1.4)}${artBirds(80, 280, 1)}
+    <g filter="url(#wcAuth)">
+      ${artCloud(300, 150, 2)}${artCloud(110, 236, 1.3)}
+      <path d="M0 380 C90 330 200 340 400 350 L400 560 L0 560Z" fill="#A7C4A0"/>
+      <path d="M0 430 C120 400 260 420 400 410 L400 560 L0 560Z" fill="#8DAE85"/>
+      <path d="M0 490 C140 470 270 490 400 480 L400 560 L0 560Z" fill="#7D9A75"/>
+      <path d="M150 560 C180 500 220 450 250 400" stroke="#E8C9A8" stroke-width="22" fill="none" opacity=".85"/>
+      ${artCottage(232, 300, 1.9)}
+      ${artTree(180, 340, 1.8)}
+      ${artTree(352, 360, 1.2)}
+    </g>
+    ${artCatOnWall(96, 418, 1.4)}
+    ${artFlower(36, 492, '#E79B8B', 1.6)}${artFlower(68, 506, '#FFFBF2', 1.4)}${artFlower(380, 500, '#E79B8B', 1.3)}
+    <g transform="translate(316 470)"><rect x="-3" y="0" width="6" height="80" fill="#84624A"/><path d="M-50 8 H40 L50 21 L40 34 H-50Z" fill="#E8C9A8" stroke="#84624A" stroke-width="1.5"/><text x="-4" y="27" text-anchor="middle" style="font-family:var(--font-hand);font-weight:600;font-size:18px;fill:#84624A">Better habits</text></g>
+  </svg>`;
+}
+/* Small doodles for encouragement and empty states. */
+const DOODLES = {
+  sprout:`<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true"><path d="M14 34 H40 L37 50 H17Z" fill="#C9735E"/><rect x="12" y="30" width="30" height="6" rx="2" fill="#B5604F"/><path d="M27 30 V10" stroke="#627F5F" stroke-width="2"/><path d="M27 18 C18 16 14 10 14 6 C22 6 27 12 27 18Z" fill="#7D9A75"/><path d="M27 14 C35 12 39 6 40 2 C32 2 27 8 27 14Z" fill="#A7C4A0"/></svg>`,
+  teacup:`<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true"><path d="M20 14 c-2 -4 2 -6 0 -10 M28 14 c-2 -4 2 -6 0 -10" stroke="#B9A684" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M10 20 H40 C40 34 34 40 25 40 C16 40 10 34 10 20Z" fill="#FFFBF2" stroke="#84624A" stroke-width="1.6"/><path d="M40 24 C47 24 47 33 39 32" stroke="#84624A" stroke-width="1.6" fill="none"/><path d="M15 27 C18 25 21 29 24 27" stroke="#8FB7D9" stroke-width="1.6" fill="none"/><ellipse cx="25" cy="44" rx="19" ry="3.5" fill="#E8C9A8"/></svg>`,
+  books:`<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true"><rect x="8" y="36" width="38" height="8" rx="1.5" fill="#627F5F"/><rect x="11" y="28" width="32" height="8" rx="1.5" fill="#E79B8B"/><rect x="9" y="20" width="35" height="8" rx="1.5" fill="#8FB7D9"/><path d="M31 20 V8 C34 6 38 6 40 8 V20" fill="#D9A657"/><path d="M38 12 C42 8 44 4 45 2" stroke="#627F5F" stroke-width="1.6" fill="none"/><path d="M44 4 C47 3 49 5 49 7 C46 8 44 6 44 4Z" fill="#7D9A75"/></svg>`,
+  lantern:`<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true"><path d="M27 2 V8" stroke="#84624A" stroke-width="1.6"/><path d="M21 8 H33 L35 12 H19Z" fill="#84624A"/><rect x="18" y="12" width="18" height="24" rx="3" fill="#F6E7C9" stroke="#84624A" stroke-width="1.6"/><ellipse cx="27" cy="25" rx="5" ry="7" fill="#D9A657" opacity=".85"/><path d="M19 36 H35 L32 41 H22Z" fill="#84624A"/><circle cx="27" cy="25" r="11" fill="#D9A657" opacity=".12"/></svg>`,
+  flowers:`<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true">${'<g transform="translate(16 18)">'}<path d="M0 30 V8" stroke="#627F5F" stroke-width="1.6"/><g fill="#E79B8B"><circle cx="0" cy="2" r="4"/><circle cx="-5" cy="6" r="4"/><circle cx="5" cy="6" r="4"/><circle cx="-3" cy="11" r="4"/><circle cx="3" cy="11" r="4"/></g><circle cx="0" cy="6.5" r="2.5" fill="#D9A657"/></g><g transform="translate(36 22)"><path d="M0 26 V8" stroke="#627F5F" stroke-width="1.6"/><g fill="#FFFBF2" stroke="#E8C9A8" stroke-width=".8"><circle cx="0" cy="2" r="3.6"/><circle cx="-4.5" cy="6" r="3.6"/><circle cx="4.5" cy="6" r="3.6"/><circle cx="-2.6" cy="11" r="3.6"/><circle cx="2.6" cy="11" r="3.6"/></g><circle cx="0" cy="6.5" r="2.3" fill="#D9A657"/></g></svg>`
+};
+function doodleNote(kind, title, text){
+  return `<div class="doodle-note">${DOODLES[kind]||DOODLES.sprout}<span>${title?`<span class="hand">${escapeHtml(title)}</span>`:''}${text}</span></div>`;
+}
+/* A gentle, data-aware line of encouragement for the dashboard. */
+function encouragement(calc){
+  const secs = ['necessities','extra','playjar'];
+  const over = secs.filter(s=> calc[s].budget>0 && calc[s].actual > calc[s].budget);
+  const saved = calc.savings.actualTotal, target = calc.savings.budgetTotal;
+  if(!calc.totalIncome && !calc.totalExpenses) return {title:'A fresh page', line:'Add this month’s income to get started.', art:'books'};
+  if(over.length) return {title:'A gentle nudge', line:`${sectionLabel(over[0])} went a little over. Tomorrow is a new page.`, art:'teacup'};
+  if(target>0 && saved >= target) return {title:'Savings goal reached!', line:'Every peso you set aside grows your garden.', art:'flowers'};
+  if(calc.netCashFlow > 0) return {title:'You’re doing great!', line:'Consistency builds a brighter tomorrow.', art:'sprout'};
+  return {title:'Steady does it', line:'Small steps, big places.', art:'lantern'};
 }
 function brandLogoSVG(){
   return `<svg class="brand-logo" viewBox="0 0 44 44" aria-hidden="true">
@@ -1649,6 +1726,7 @@ function viewDashboard(key){
         </div>
       </div>
       <div class="dash-col">
+        ${(()=>{ const e = encouragement(calc); return `<div class="card encourage-card">${DOODLES[e.art]}<div><b>${escapeHtml(e.title)}</b><div class="hand">${escapeHtml(e.line)}</div></div></div>`; })()}
         <div class="card">
           <div class="card-head"><h3 class="card-title">Coming Up</h3><span style="display:flex;gap:8px;align-items:center;">${(()=>{ const n = overdueCount(ctx.key); return n ? `<button class="card-chip rose" data-action="goto" data-view="calendar">${icon('circle-alert','ic-sm')}${n} overdue</button>` : ''; })()}<button class="card-link" data-action="goto" data-view="calendar">View All</button></span></div>
           ${upcomingList(ctx.key)}
@@ -1759,7 +1837,7 @@ function overdueCount(key){
 }
 function upcomingList(key){
   const items = computeUpcomingItems(key).filter(it=>it.date>=toISO(today)).slice(0,5);
-  if(!items.length) return `<div class="empty-note"><span class="badge-ic sm t-accent">${icon('calendar-check')}</span>Nothing due in the next 30 days. Add paydays in Settings or recurring bills from the Calendar.</div>`;
+  if(!items.length) return doodleNote('teacup', 'All quiet for now', 'Nothing due in the next 30 days. Add paydays in Settings or recurring bills from the Calendar.');
   return `<div class="list-rows">${items.map(it=>{
     const d = new Date(it.date+'T00:00:00');
     const ui = upcomingIcon(it);
@@ -2201,7 +2279,7 @@ function viewIncome(key){
           <td class="num"><b>${money(r.amount)}</b></td>
           <td>${kebab('income',{id:r.id})}</td>
         </tr>`).join('')}</tbody>
-      </table></div>` : emptyNote('banknote','save','No income recorded for this month yet. Use “Add Income” to log a paycheck.')}
+      </table></div>` : doodleNote('books', 'A fresh page', 'No income recorded for this month yet. Use “Add Income” to log a paycheck.')}
     </div>
   `;
 }
@@ -2272,7 +2350,7 @@ function viewSection(key, sec){
             <td class="num"><b>${money(e.amount)}</b></td>
             <td>${kebab('expense',{id:e.id, section:sec})}</td>
           </tr>`).join('')}</tbody>
-        </table></div>` : emptyNote('receipt', tone, (q||curExpenseCatFilter!=='all') ? 'No expenses match this filter.' : 'No expenses logged here this month yet.')}
+        </table></div>` : ((q||curExpenseCatFilter!=='all') ? emptyNote('receipt', tone, 'No expenses match this filter.') : doodleNote('teacup', 'Nothing spent yet', 'No expenses logged here this month.'))}
       </div>
     </div>
   `;
@@ -2370,7 +2448,7 @@ function viewSavings(key){
               <td>${kebab('goal',{id:g.id})}</td>
             </tr>`;
           }).join('')}</tbody>
-        </table></div>` : emptyNote('sprout','save','No savings goals yet. Add one to start splitting your monthly savings.')}
+        </table></div>` : doodleNote('sprout', 'Plant your first goal', 'Add a savings goal to start splitting your monthly savings.')}
         <p class="help-text" style="margin-top:12px;">Use the ⋮ menu to record what you actually saved — totals never update automatically.</p>
       </div>
     </div>
@@ -2809,7 +2887,7 @@ function viewAnnual(year){
       `<select id="annualYearSelect" class="card-chip" aria-label="Year">${yearOptions.map(y=>`<option value="${y}" ${y===year?'selected':''}>${y}</option>`).join('')}</select>
        <button class="btn" data-action="export-menu">${icon('download','ic-sm')}Export</button>`)}
     ${pillTabs('report', REPORT_TABS, curReportTab)}
-    ${A.monthCalcs.length ? body : `<div class="card">${emptyNote('chart-column','accent',`No data recorded for ${year} yet.`)}</div>`}
+    ${A.monthCalcs.length ? body : `<div class="card">${doodleNote('lantern', 'Nothing to report yet', `No data recorded for ${year} yet.`)}</div>`}
   `;
 }
 function reportOverview(A){
@@ -3812,7 +3890,7 @@ function openAlertsPanel(anchor){
       <span class="badge-ic sm t-${a.tone==='danger'?'debt':a.tone==='warn'?'extra':'save'}">${icon(a.icon)}</span>
       <button class="alert-body" data-alert-go="${i}"><b>${escapeHtml(a.title)}</b><small>${escapeHtml(a.detail)}</small></button>
       <button class="icon-btn" data-alert-dismiss="${i}" aria-label="Dismiss">${icon('x','ic-sm')}</button>
-    </div>`).join('') : `<div class="empty-note" style="margin:6px;">${icon('circle-check')}You’re all caught up.</div>`}`;
+    </div>`).join('') : `<div style="margin:6px;">${doodleNote('flowers', 'All caught up', 'No alerts right now.')}</div>`}`;
   const pop = openMenu(anchor, [], {html});
   pop.classList.add('alerts-pop');
   pop.addEventListener('click', e=>{
