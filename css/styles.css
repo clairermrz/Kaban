@@ -1817,3 +1817,36 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 @media (max-width:900px), (pointer:coarse){
   input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px !important;}
 }
+/* Expense pages: budget bar and the category donut side by side */
+.sec-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:18px;margin-bottom:18px;align-items:stretch;}
+.sec-top.single{display:block;margin-bottom:0;}
+.sec-top > .card{margin:0;}
+.sec-top:not(.single) .sec-summary{align-content:center;}
+.sec-top:not(.single) .sec-summary-stats{width:100%;justify-content:flex-start;gap:40px;padding-left:76px;}
+.sec-top .bd-wrap{grid-template-columns:auto minmax(0,1fr);justify-items:stretch;gap:20px;}
+.sec-top .bd-wrap .donut-wrap{width:190px;height:190px;}
+@media(max-width:1100px){ .sec-top{grid-template-columns:minmax(0,1fr);} .sec-top:not(.single) .sec-summary-stats{padding-left:0;} }
+@media(max-width:560px){ .sec-top .bd-wrap{grid-template-columns:minmax(0,1fr);justify-items:center;} .sec-top .bd-legend{width:100%;} }
+/* Necessities / Extra: donut, categories and entries as three columns under the budget bar */
+.page-3col{grid-template-columns:minmax(0,.85fr) minmax(0,1fr) minmax(0,1.35fr);}
+.sec-donut-card .bd-wrap{grid-template-columns:minmax(0,1fr);justify-items:center;gap:16px;}
+.sec-donut-card .bd-legend{width:100%;}
+.sec-donut-card .bd-wrap .donut-wrap{width:200px;height:200px;}
+@media(max-width:1350px){ .page-3col{grid-template-columns:minmax(0,1fr) minmax(0,1fr);} .page-3col > .sec-donut-card{grid-column:1 / -1;} .page-3col > .sec-donut-card .bd-wrap{grid-template-columns:auto minmax(0,1fr);justify-items:stretch;} }
+@media(max-width:900px){ .page-3col{grid-template-columns:minmax(0,1fr);} .page-3col > .sec-donut-card .bd-wrap{grid-template-columns:minmax(0,1fr);justify-items:center;} }
+/* Three-column expense layout: keep each column readable */
+.page-3col{grid-template-columns:minmax(0,.8fr) minmax(0,1.1fr) minmax(0,1.3fr);}
+.page-3col .card-title{font-size:18px;}
+.page-3col .card-head{flex-wrap:wrap;row-gap:8px;}
+.page-3col .cb-top{flex-wrap:wrap;row-gap:2px;}
+.page-3col .cb-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:100%;}
+.page-3col .cb-top .br-amt{font-size:13px;white-space:nowrap;}
+.page-3col .cb-row{grid-template-columns:30px minmax(0,1fr) 40px 28px;gap:10px;}
+.page-3col .tbl{font-size:13px;}
+.page-3col .tbl th,.page-3col .tbl td{padding-left:8px;padding-right:8px;}
+.sec-donut-card .bd-wrap{align-content:start;flex:0 0 auto;}
+@media(max-width:1350px){ .page-3col{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);} .page-3col > .sec-donut-card{grid-column:1 / -1;} .page-3col > .sec-donut-card .bd-wrap{grid-template-columns:auto minmax(0,1fr);justify-items:stretch;align-items:center;} }
+@media(max-width:900px){ .page-3col{grid-template-columns:minmax(0,1fr);} .page-3col > .sec-donut-card .bd-wrap{grid-template-columns:minmax(0,1fr);justify-items:center;} }
+/* Pie chart on the right */
+.page-3col > .sec-donut-card{order:3;}
+@media(min-width:1351px){ .page-3col{grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) minmax(0,.8fr);} }

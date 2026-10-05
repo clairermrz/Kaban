@@ -271,7 +271,7 @@ let curCalFilters = {paydays:true, recurring:true, expenses:true, debts:true};
 let curDashboardMoneyView = 'actual';
 let curShowCompletedDebts = false;
 let curShowDeactivatedGoals = false;
-let curCollapsedCats = {}; // key: `${section}|${mainCategoryName}` -> true when collapsed
+let curExpandedCats = {}; // key: `${section}|${mainCategoryName}` -> true when opened; categories start collapsed
 
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -1255,6 +1255,7 @@ function totalCashOutflow(calc){
 ========================================================= */
 function navTo(view){
   if(view==='expenses') view = curExpenseSection;
+  if(EXPENSE_SECTIONS.includes(view) && !EXPENSE_SECTIONS.includes(curView)) curExpandedCats = {}; // fresh visit: everything collapsed
   if(EXPENSE_SECTIONS.includes(view)) curExpenseSection = view;
   curView = view; curDebtDetailId = null; closeMenu();
   renderAll();
@@ -1428,6 +1429,7 @@ function renderAll(){
   attachViewHandlers(key);
   if(curView==='annual') drawAnnualCharts(curYearForAnnual);
   if(curView==='dashboard') drawDashboardDonut();
+  if(DONUT_SECTIONS.includes(curView)) drawSectionDonut(key, curView);
 }
 
 /* =========================================================
@@ -2572,6 +2574,45 @@ function viewIncome(key){
 ========================================================= */
 let curExpenseCatFilter = 'all';
 let curExpenseSearch = '';
+/* Necessities & Extra Expenses pages: donut of this month's spending split by main category. */
+const DONUT_SECTIONS = ['necessities', 'extra'];
+const CAT_COLORS = ['#627F5F','#E8C9A8','#E79B8B','#8FB7D9','#D9A657','#A7C4A0','#C9A27E','#B7A1C9','#6E7B8B','#F1C7A8'];
+function sectionSlices(catRows){
+  return catRows.filter(c=>c.actual>0).sort((a,b)=>b.actual-a.actual).map((c,i)=>({label:c.main, amount:c.actual, color:CAT_COLORS[i % CAT_COLORS.length]}));
+}
+function sectionDonut(catRows, calc){
+  const slices = sectionSlices(catRows);
+  const total = sumBy(slices, x=>x.amount);
+  if(!total) return doodleNote('teacup', 'Nothing spent yet', 'Your spending split will show here once you log expenses.');
+  return `<div class="bd-wrap">
+    <div class="donut-wrap"><canvas id="secDonut" aria-label="Spending by category this month"></canvas>
+      <div class="donut-center"><b>${money(Math.round(total))}</b><span>spent</span></div></div>
+    <div class="bd-legend">${slices.map(x=>`<button class="bd-item" data-action="filter-exp-cat" data-main="${escapeHtml(x.label)}" title="Show only ${escapeHtml(x.label)} entries">
+      <span class="dot" style="background:${x.color}"></span>
+      <span class="bd-name">${escapeHtml(x.label)}</span>
+      <span class="bd-amt">${money(Math.round(x.amount))}</span>
+      <span class="bd-pct">${pct(x.amount/total*100)}</span>
+    </button>`).join('')}
+    ${calc.budget>0 ? `<div class="bd-foot">${money(Math.round(total))} spent of ${money(Math.round(calc.budget))} budget</div>` : ''}</div>
+  </div>`;
+}
+function drawSectionDonut(key, sec){
+  destroyChart('secDonut');
+  const el = document.getElementById('secDonut');
+  if(!el) return;
+  const slices = sectionSlices(categoryBudgetRows(getMonth(key,true), sec, key));
+  chartRegistry['secDonut'] = new Chart(el, {
+    type:'doughnut',
+    data:{ labels:slices.map(x=>x.label), datasets:[{data:slices.map(x=>x.amount), backgroundColor:slices.map(x=>x.color), borderWidth:2, borderColor:cssVar('--surface')}] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'60%',
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(item)=>{
+        const t = item.dataset.data.reduce((a,b)=>a+b,0);
+        return ` ${item.label}: ${money(item.parsed)} (${t>0?pct(item.parsed/t*100):'0%'})`;
+      }}}}
+    },
+    plugins:[donutLabelsPlugin]
+  });
+}
 function viewSection(key, sec){
   const m = getMonth(key,true);
   const calc = computeMonth(key)[sec];
@@ -2607,7 +2648,11 @@ function viewSection(key, sec){
       </div>
     </div>
 
-    <div class="page-2col">
+    <div class="page-2col ${DONUT_SECTIONS.includes(sec)?'page-3col':''}">
+      ${DONUT_SECTIONS.includes(sec) ? `<div class="card sec-donut-card">
+        <div class="card-head"><h3 class="card-title">Spending by Category</h3><span class="card-chip">${MONTH_NAMES[cur.monthIndex].slice(0,3)} ${cur.year}</span></div>
+        ${sectionDonut(catRows, calc)}
+      </div>` : ''}
       <div class="card">
         <div class="card-head"><h3 class="card-title">Expenses by Category</h3><span class="card-chip">Planned ${money(plannedTotal)}</span></div>
         ${catRows.length ? `<div class="cb-list">${catRows.map(c=>catBudgetRow(c, sec)).join('')}</div>` : emptyNote('tags', tone, 'No categories yet — add some with “Manage Categories”.')}
@@ -2644,7 +2689,7 @@ function catBudgetRow(c, sec){
   const ratio = c.budget>0 ? c.actual/c.budget : (c.actual>0?1:0);
   if(c.subs){
     const collapseKey = `${sec}|${c.main}`;
-    const collapsed = !!curCollapsedCats[collapseKey];
+    const collapsed = !curExpandedCats[collapseKey];
     return `<div class="cb-group">
       <div class="cb-row">
         <span class="badge-ic sm t-${catTone(sec, c.main)}">${icon(catIconFor(sec, c.main))}</span>
@@ -3553,9 +3598,15 @@ function handleAction(action, el, key){
 
   if(action==='manage-categories') return openCategoriesModal(key, el.dataset.section);
   if(action==='edit-this-month-budget') return openThisMonthBudgetModal(key, el.dataset.section, el.dataset.main, el.dataset.sub||null);
+  if(action==='filter-exp-cat'){
+    curExpenseCatFilter = el.dataset.main;
+    renderAll();
+    const f = document.getElementById('expCatFilter'); if(f) f.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
   if(action==='toggle-category-collapse'){
     const collapseKey = `${el.dataset.section}|${el.dataset.main}`;
-    curCollapsedCats[collapseKey] = !curCollapsedCats[collapseKey];
+    curExpandedCats[collapseKey] = !curExpandedCats[collapseKey];
     renderAll();
     return;
   }
