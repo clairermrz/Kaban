@@ -2,7 +2,7 @@
    - Your own files: always re-checked with the server (so updates show up right away), falling back to the cached copy offline.
    - Fonts and libraries from CDNs: served from cache, refreshed in the background.
    - Supabase (your data) is never cached here; it always goes to the network. */
-const CACHE = 'kaban-v3';
+const CACHE = 'kaban-v4';
 const SHELL = [
   './', 'index.html', 'css/styles.css', 'js/theme.js', 'js/config.js', 'js/app.js', 'js/cloud.js',
   'vendor/chart.umd.min.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'

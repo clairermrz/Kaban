@@ -1297,7 +1297,8 @@ function renderAvatar(){
   if(!btn) return;
   const info = accountInfo();
   const label = info.email || state.settings.householdName || '';
-  btn.innerHTML = label ? escapeHtml(label.trim().charAt(0).toUpperCase()) : icon('user');
+  const nm = displayName() || (info.email ? info.email.split('@')[0] : 'Guest');
+  btn.innerHTML = `<span class="av-circle">${label ? escapeHtml(label.trim().charAt(0).toUpperCase()) : icon('user')}<span class="av-status" data-sync-status></span></span><span class="av-text"><b>${escapeHtml(nm)}</b><small>Stay consistent ${icon('sprout','ic-xs')}</small></span>${icon('chevron-down','ic-sm av-chev')}`;
   btn.title = info.email ? `Signed in as ${info.email}` : 'Not signed in — data is saved on this device';
 }
 function openAccountMenu(anchor){
@@ -1318,6 +1319,7 @@ function openAccountMenu(anchor){
 function renderTopChips(){
   const el = document.getElementById('topChips');
   if(!el) return;
+  if(curView==='dashboard'){ el.innerHTML=''; return; }
   const ctx = dashboardCtx(monthKey(cur.year, cur.monthIndex));
   const daysTxt = ctx.isPastMonth ? 'Month ended' : (ctx.isCurrentRealMonth ? `${ctx.daysLeft} day${ctx.daysLeft===1?'':'s'} left` : `${ctx.days} days`);
   el.innerHTML = `<span class="top-chip">${icon('calendar-days')}${daysTxt}</span>
@@ -1375,9 +1377,8 @@ function openMoreMenu(anchor){
   openMenu(anchor, NAV_ITEMS.filter(n=>!['dashboard','calendar','expenses'].includes(n.id)).map(n=>({label:n.label, icon:n.icon, tone:'accent', onClick:()=>navTo(n.id)})));
 }
 document.getElementById('prevMonthBtn').innerHTML = icon('chevron-left');
-document.getElementById('monthLabelBtn').insertAdjacentHTML('beforeend', icon('chevron-down'));
+document.getElementById('monthLabelBtn').insertAdjacentHTML('afterbegin', icon('calendar','ic-sm ms-cal'));
 document.querySelectorAll('[data-brand-logo]').forEach(el=> el.innerHTML = brandLogoSVG());
-document.getElementById('sidebarArt').insertAdjacentHTML('afterbegin', sidebarArtSVG());
 document.getElementById('nextMonthBtn').innerHTML = icon('chevron-right');
 document.getElementById('addBtn').innerHTML = `${icon('plus')}<span class="add-btn-label">Add</span>`;
 document.getElementById('prevMonthBtn').addEventListener('click', ()=>shiftMonth(-1));
@@ -1386,6 +1387,24 @@ document.getElementById('monthLabelBtn').addEventListener('click', (e)=>openMont
 document.getElementById('addBtn').addEventListener('click', (e)=>openAddMenu(e.currentTarget));
 document.getElementById('avatarBtn').addEventListener('click', (e)=>openAccountMenu(e.currentTarget));
 document.getElementById('alertBtn').addEventListener('click', (e)=>openAlertsPanel(e.currentTarget));
+(function wireSearch(){
+  const input = document.getElementById('globalSearch'), box = document.getElementById('searchResults');
+  const ic = document.querySelector('[data-search-icon]'); if(ic) ic.innerHTML = icon('search','ic-sm');
+  if(!input || !box) return;
+  let sel = -1;
+  const mark = ()=> box.querySelectorAll('.sr-item').forEach((b,i)=>b.classList.toggle('active', i===sel));
+  input.addEventListener('input', ()=>{ sel = -1; renderSearchResults(input); });
+  input.addEventListener('focus', ()=>{ if(input.value.trim().length>=2) renderSearchResults(input); });
+  input.addEventListener('keydown', (e)=>{
+    const n = (box._results||[]).length;
+    if(e.key==='ArrowDown' && n){ e.preventDefault(); sel = (sel+1)%n; mark(); }
+    else if(e.key==='ArrowUp' && n){ e.preventDefault(); sel = (sel-1+n)%n; mark(); }
+    else if(e.key==='Enter' && n){ e.preventDefault(); openSearchResult(box._results[Math.max(sel,0)]); }
+    else if(e.key==='Escape'){ input.value=''; box.hidden = true; input.blur(); }
+  });
+  box.addEventListener('mousedown', (e)=>{ const b = e.target.closest('[data-sr]'); if(!b) return; e.preventDefault(); openSearchResult(box._results[Number(b.dataset.sr)]); });
+  input.addEventListener('blur', ()=> setTimeout(()=>{ box.hidden = true; }, 120));
+})();
 window.addEventListener('scroll', ()=>{ document.getElementById('topbar').classList.toggle('scrolled', window.scrollY>4); }, {passive:true});
 
 let chartRegistry = {};
@@ -1514,97 +1533,199 @@ function sprigSVG(o){
   }
   return out;
 }
-/* ---------- Storybook illustrations (all original, drawn in code) ---------- */
-function WC_FILTER(id, scale){ return `<filter id="${id}"><feTurbulence baseFrequency=".035" numOctaves="2" seed="5"/><feDisplacementMap in="SourceGraphic" scale="${scale||8}"/><feGaussianBlur stdDeviation=".5"/></filter>`; }
+/* ---------- Watercolor illustrations (all original, drawn in code) ----------
+   Shapes are painted with the shared SVG filters in index.html:
+   #wcPaint = wobbly edge + granulation + darker pigment pooling at the rim,
+   #wcWash  = big soft bleeding washes, #wcInk = slightly shaky ink outlines. */
+function WC_FILTER(){ return ''; }
+function P(inner, op){ return `<g filter="url(#wcPaint)"${op!=null?` opacity="${op}"`:''}>${inner}</g>`; }
+function INK(inner){ return `<g filter="url(#wcInk)" fill="none" stroke="#84624A" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity=".75">${inner}</g>`; }
 function artCottage(x, y, s){
   return `<g transform="translate(${x} ${y}) scale(${s})">
-    <rect x="0" y="16" width="44" height="30" fill="#F6E9DA" stroke="#84624A" stroke-width="1.5"/>
-    <path d="M-6 18 L22 -4 L50 18Z" fill="#C9735E" stroke="#84624A" stroke-width="1.5"/>
-    <rect x="33" y="-1" width="5" height="11" fill="#84624A"/>
-    <rect x="17" y="28" width="10" height="18" fill="#84624A"/>
-    <rect x="5" y="22" width="8" height="8" fill="#F6E7C9" stroke="#84624A"/><rect x="31" y="22" width="8" height="8" fill="#F6E7C9" stroke="#84624A"/>
+    ${P(`<rect x="0" y="16" width="44" height="30" fill="#F3DFC6"/>`, .95)}
+    ${P(`<path d="M-6 18 L22 -4 L50 18Z" fill="#C9735E"/>`, .9)}
+    ${P(`<rect x="33" y="-1" width="5" height="11" fill="#9C7A5E"/><rect x="17" y="28" width="10" height="18" fill="#84624A"/>`, .85)}
+    ${P(`<rect x="5" y="22" width="8" height="8" fill="#F1D9A0"/><rect x="31" y="22" width="8" height="8" fill="#F1D9A0"/>`, .9)}
+    ${INK(`<path d="M0 16 V46 H44 V16"/><path d="M-6 18 L22 -4 L50 18"/><path d="M17 46 V28 H27 V46"/><rect x="5" y="22" width="8" height="8"/><rect x="31" y="22" width="8" height="8"/><path d="M9 22 V30 M5 26 H13 M35 22 V30 M31 26 H39"/>`)}
   </g>`;
 }
 function artTree(x, y, s){
-  return `<g transform="translate(${x} ${y}) scale(${s})"><rect x="-2" y="16" width="4" height="22" fill="#84624A"/><circle cx="0" cy="8" r="16" fill="#627F5F"/><circle cx="-9" cy="14" r="10" fill="#7D9A75"/><circle cx="8" cy="13" r="9" fill="#7D9A75"/></g>`;
+  return `<g transform="translate(${x} ${y}) scale(${s})">
+    ${P(`<path d="M-2 14 Q0 26 -1 38 H3 Q2 26 2 14Z" fill="#84624A"/>`, .85)}
+    ${P(`<circle cx="0" cy="6" r="15" fill="#627F5F"/>`, .78)}
+    ${P(`<circle cx="-9" cy="13" r="10" fill="#7D9A75"/><circle cx="9" cy="12" r="9" fill="#8DAE85"/>`, .7)}
+    ${P(`<circle cx="-4" cy="2" r="6" fill="#A7C4A0"/>`, .55)}
+  </g>`;
 }
 function artCloud(x, y, s){
-  return `<g transform="translate(${x} ${y}) scale(${s})" fill="#fff"><ellipse cx="0" cy="0" rx="34" ry="11"/><ellipse cx="-14" cy="-5" rx="16" ry="10"/><ellipse cx="10" cy="-7" rx="14" ry="9"/></g>`;
+  return `<g transform="translate(${x} ${y}) scale(${s})" filter="url(#wcWash)" fill="#fff" opacity=".95"><ellipse cx="0" cy="0" rx="34" ry="11"/><ellipse cx="-14" cy="-5" rx="16" ry="10"/><ellipse cx="10" cy="-7" rx="14" ry="9"/></g>`;
 }
 function artBirds(x, y, s){
-  return `<g transform="translate(${x} ${y}) scale(${s})" stroke="#6E665A" stroke-width="1.4" fill="none" stroke-linecap="round"><path d="M0 0 q4 -4 8 0 q4 -4 8 0"/><path d="M20 -9 q3 -3 6 0 q3 -3 6 0"/></g>`;
-}
-function artFlower(x, y, color, s){
-  return `<g transform="translate(${x} ${y}) scale(${s||1})"><path d="M0 30 V8" stroke="#627F5F" stroke-width="1.6"/><path d="M0 22 C-6 20 -8 15 -8 12 C-3 13 0 17 0 22Z" fill="#7D9A75"/><g fill="${color}" ${color==='#FFFBF2'?'stroke="#E8C9A8" stroke-width=".8"':''}><circle cx="0" cy="2" r="3.6"/><circle cx="-4.5" cy="6" r="3.6"/><circle cx="4.5" cy="6" r="3.6"/><circle cx="-2.6" cy="11" r="3.6"/><circle cx="2.6" cy="11" r="3.6"/></g><circle cx="0" cy="6.5" r="2.3" fill="#D9A657"/></g>`;
+  return `<g transform="translate(${x} ${y}) scale(${s})" filter="url(#wcInk)" stroke="#6E665A" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".8"><path d="M0 0 q4 -4 8 0 q4 -4 8 0"/><path d="M20 -9 q3 -3 6 0 q3 -3 6 0"/></g>`;
 }
 /* An ordinary black cat sitting on a stone wall, seen from the side. */
 function artCatOnWall(x, y, s){
   return `<g transform="translate(${x} ${y}) scale(${s})">
-    <g fill="#E8DCC4" stroke="#B9A684" stroke-width="1"><rect x="-30" y="22" width="22" height="11" rx="2"/><rect x="-7" y="22" width="24" height="11" rx="2"/><rect x="18" y="22" width="20" height="11" rx="2"/><rect x="-20" y="33" width="24" height="11" rx="2"/><rect x="5" y="33" width="25" height="11" rx="2"/></g>
-    <g fill="#3F3A32"><path d="M18 22 C30 18 32 4 26 -4"  stroke="#3F3A32" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="6" cy="12" rx="10" ry="11"/><circle cx="5" cy="-4" r="7"/><path d="M0 -8 L1.5 -15 L5 -10Z"/><path d="M6 -10 L10 -15 L10.5 -8Z"/></g>
+    ${P(`<g fill="#E6D8BE"><rect x="-30" y="22" width="22" height="11" rx="3"/><rect x="-7" y="22" width="24" height="11" rx="3"/><rect x="18" y="22" width="20" height="11" rx="3"/><rect x="-20" y="33" width="24" height="11" rx="3"/><rect x="5" y="33" width="25" height="11" rx="3"/></g>`, .95)}
+    ${INK(`<g stroke="#A8936E" stroke-width="1"><rect x="-30" y="22" width="22" height="11" rx="3"/><rect x="-7" y="22" width="24" height="11" rx="3"/><rect x="18" y="22" width="20" height="11" rx="3"/><rect x="-20" y="33" width="24" height="11" rx="3"/><rect x="5" y="33" width="25" height="11" rx="3"/></g>`)}
+    ${P(`<g fill="#3F3A32"><ellipse cx="6" cy="12" rx="10" ry="11"/><circle cx="5" cy="-4" r="7"/><path d="M0 -8 L1.5 -15 L5 -10Z"/><path d="M6 -10 L10 -15 L10.5 -8Z"/></g>`, .92)}
+    ${INK(`<path d="M15 20 C29 18 32 4 26 -4" stroke="#3F3A32" stroke-width="3"/>`)}
   </g>`;
 }
-function sidebarArtSVG(){
-  const quote = "font-family:var(--font-hand);font-weight:600;font-size:22px;fill:#84624A";
-  return `<svg viewBox="0 0 250 330" preserveAspectRatio="xMinYMax meet" aria-hidden="true">
-    <defs>${WC_FILTER('wcSide', 8)}</defs>
-    <g transform="rotate(-4 120 80)"><text x="70" y="56" style="${quote}">Small steps</text><text x="70" y="80" style="${quote}">today,</text><text x="70" y="104" style="${quote}">brighter</text><text x="70" y="128" style="${quote}">days ♡</text></g>
-    ${artBirds(176, 150, 1)}
-    <g filter="url(#wcSide)">
-      ${artCloud(196, 178, .9)}
-      <path d="M0 238 C60 208 130 214 250 226 L250 330 L0 330Z" fill="#A7C4A0" opacity=".8"/>
-      <path d="M0 270 C70 250 150 260 250 254 L250 330 L0 330Z" fill="#8DAE85" opacity=".85"/>
-      ${artCottage(150, 196, .9)}
-      ${artTree(118, 210, .9)}
-      <path d="M0 302 C80 290 170 300 250 294 L250 330 L0 330Z" fill="#7D9A75" opacity=".9"/>
-    </g>
-    ${artCatOnWall(58, 262, .95)}
-    ${artFlower(16, 296, '#E79B8B', 1)}
-    ${artFlower(206, 300, '#FFFBF2', 1)}
-    ${artFlower(228, 302, '#E79B8B', .8)}
+/* ---------- Watercolor botanicals (original, drawn in code) ----------
+   Broad layered leaves shaded base-to-tip with the lf-* gradients, five-petal blossoms with the
+   pt-* gradients, all painted through the shared #wcPaint / #wcWash / #wcInk filters in index.html. */
+function seededRandom(seed){ let s = seed % 2147483647; if(s<=0) s += 2147483646; return ()=> (s = s*16807 % 2147483647) / 2147483647; }
+/* One leaf pointing along +x from the origin: soft shading plus a pale centre vein. */
+function wcLeafPath(L, W, grad, bend){
+  const b = bend||0;
+  return `<path d="M0 0 C${(L*.22).toFixed(1)} ${(-W+b).toFixed(1)} ${(L*.68).toFixed(1)} ${(-W*.9+b).toFixed(1)} ${L.toFixed(1)} ${b.toFixed(1)} C${(L*.68).toFixed(1)} ${(W*.9+b).toFixed(1)} ${(L*.22).toFixed(1)} ${(W+b).toFixed(1)} 0 0Z" fill="url(#${grad})"/>`;
+}
+function wcVein(L, W, bend){
+  const b = bend||0;
+  return `<path d="M${(L*.06).toFixed(1)} 0 Q${(L*.5).toFixed(1)} ${(b*.6 - W*.06).toFixed(1)} ${(L*.9).toFixed(1)} ${(b*.9).toFixed(1)}" stroke="#FFFFFF" stroke-width="${Math.max(.7, W*.07).toFixed(2)}" fill="none" opacity=".38" stroke-linecap="round"/>`;
+}
+/* A painted branch with alternating broad leaves.
+   o = {x, y, angle (0 = up), len, curve, leaves, size, grads:[lf-*], width (leaf width ratio), seed, stem, opacity} */
+function wcBranch(o){
+  const rnd = seededRandom(o.seed || 7);
+  const grads = o.grads || ['lf-deep','lf-mid','lf-light'];
+  const rad = (o.angle||0) * Math.PI/180;
+  const P0 = [o.x, o.y], P1 = [o.x + Math.sin(rad)*o.len, o.y - Math.cos(rad)*o.len];
+  const nx = Math.cos(rad), ny = Math.sin(rad);
+  const C = [(P0[0]+P1[0])/2 + nx*(o.curve||0), (P0[1]+P1[1])/2 + ny*(o.curve||0)];
+  const pt = t=>[(1-t)*(1-t)*P0[0]+2*(1-t)*t*C[0]+t*t*P1[0], (1-t)*(1-t)*P0[1]+2*(1-t)*t*C[1]+t*t*P1[1]];
+  const tan = t=>[2*(1-t)*(C[0]-P0[0])+2*t*(P1[0]-C[0]), 2*(1-t)*(C[1]-P0[1])+2*t*(P1[1]-C[1])];
+  const layers = ['','',''];
+  const veins = [];
+  const n = o.leaves;
+  for(let i=0;i<n;i++){
+    const t = 0.14 + 0.82*(i/(n-1||1));
+    const [px,py] = pt(Math.min(t,.985)), [tx,ty] = tan(t);
+    const base = Math.atan2(ty,tx)*180/Math.PI;
+    const side = i===n-1 ? 0 : (i%2 ? 1 : -1);
+    const L = o.size * (1 - 0.42*t) * (0.82 + rnd()*0.36);
+    const W = L * ((o.width||.36) + rnd()*0.08);
+    const bend = (rnd()-.5) * W * .5;
+    const rot = base + side*((o.spread||34) + rnd()*((o.spread||34)*.55));
+    const grad = grads[Math.floor(rnd()*grads.length)];
+    const tf = `translate(${px.toFixed(1)} ${py.toFixed(1)}) rotate(${rot.toFixed(1)})`;
+    layers[i%3] += `<g transform="${tf}">${wcLeafPath(L, W, grad, bend)}</g>`;
+    veins.push(`<g transform="${tf}">${wcVein(L, W, bend)}</g>`);
+  }
+  const op = o.opacity!=null ? o.opacity : .9;
+  const stem = `<path d="M${P0[0]} ${P0[1]} Q${C[0].toFixed(1)} ${C[1].toFixed(1)} ${P1[0].toFixed(1)} ${P1[1].toFixed(1)}" stroke="${o.stem||'#6E8F69'}" stroke-width="${o.stemWidth||2}" fill="none" stroke-linecap="round"/>`;
+  return `<g filter="url(#wcInk)" opacity="${(op*.85).toFixed(2)}">${stem}</g>${P(layers[0], op)}${P(layers[1], op-.08)}${P(layers[2], op-.14)}<g opacity="${op.toFixed(2)}">${veins.join('')}</g>`;
+}
+/* A five-petal watercolor blossom. */
+function wcFlower(x, y, r, grad, rot){
+  let petals = '';
+  for(let i=0;i<5;i++) petals += `<ellipse cx="0" cy="${(-r*.55).toFixed(1)}" rx="${(r*.42).toFixed(1)}" ry="${(r*.6).toFixed(1)}" transform="rotate(${(i*72 + (rot||0)).toFixed(0)})" fill="url(#${grad||'pt-peach'})"/>`;
+  return `<g transform="translate(${x} ${y})">${P(petals, .92)}${P(`<circle r="${(r*.22).toFixed(1)}" fill="#D9A657"/>`, .95)}<g fill="#B98E62" opacity=".7"><circle cx="${(r*.12).toFixed(1)}" cy="${(-r*.08).toFixed(1)}" r="${(r*.05).toFixed(1)}"/><circle cx="${(-r*.1).toFixed(1)}" cy="${(r*.06).toFixed(1)}" r="${(r*.05).toFixed(1)}"/></g></g>`;
+}
+/* Little clusters of round buds on short stems. */
+function wcBuds(x, y, color, n, seed, r){
+  const rnd = seededRandom(seed||3); let buds = '', stems = '';
+  for(let i=0;i<n;i++){
+    const bx = x + (rnd()-.5)*22, by = y + (rnd()-.5)*22, rr = (r||3.4)*(0.75+rnd()*.5);
+    stems += `<path d="M${x} ${y+10} Q${((x+bx)/2).toFixed(1)} ${(by+8).toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)}"/>`;
+    buds += `<ellipse cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" rx="${(rr*.8).toFixed(1)}" ry="${rr.toFixed(1)}" fill="${color}"/>`;
+  }
+  return `<g filter="url(#wcInk)" stroke="#7D9A75" stroke-width="1" fill="none" opacity=".7">${stems}</g>${P(buds, .88)}`;
+}
+/* A thin stem of tiny pink blossoms, like sprigs of wildflowers. */
+function wcFlowerSprig(x, y, angle, len, n, seed, grad){
+  const rnd = seededRandom(seed||5);
+  const rad = angle*Math.PI/180, ex = x + Math.sin(rad)*len, ey = y - Math.cos(rad)*len;
+  let stems = `<path d="M${x} ${y} Q${(x+ex)/2 + 6} ${(y+ey)/2} ${ex.toFixed(1)} ${ey.toFixed(1)}"/>`;
+  let flowers = '';
+  for(let i=0;i<n;i++){
+    const t = .45 + .55*(i/(n-1||1));
+    const px = x + (ex-x)*t, py = y + (ey-y)*t;
+    const off = (i%2?1:-1) * (6 + rnd()*8);
+    const fx = px + Math.cos(rad)*off, fy = py + Math.sin(rad)*off - 3;
+    stems += `<path d="M${px.toFixed(1)} ${py.toFixed(1)} L${fx.toFixed(1)} ${fy.toFixed(1)}"/>`;
+    const r = 4.2 + rnd()*2.4;
+    let petals = '';
+    for(let k=0;k<5;k++) petals += `<ellipse cx="0" cy="${(-r*.5).toFixed(1)}" rx="${(r*.4).toFixed(1)}" ry="${(r*.55).toFixed(1)}" transform="rotate(${k*72 + rnd()*30})" fill="url(#${grad||'pt-pink'})"/>`;
+    flowers += `<g transform="translate(${fx.toFixed(1)} ${fy.toFixed(1)})">${petals}<circle r="${(r*.18).toFixed(1)}" fill="#D9A657"/></g>`;
+  }
+  return `<g filter="url(#wcInk)" stroke="#8C9A82" stroke-width="1" fill="none" opacity=".75">${stems}</g>${P(flowers, .9)}`;
+}
+const SLIM = {width:.21, spread:26};
+/* A daisy with many narrow petals, painted in soft peach. */
+function wcDaisy(x, y, r, grad, rot, n){
+  n = n || 12; let petals = '';
+  for(let i=0;i<n;i++) petals += `<ellipse cx="0" cy="${(-r*.55).toFixed(1)}" rx="${(r*.17).toFixed(1)}" ry="${(r*.5).toFixed(1)}" transform="rotate(${(i*360/n + (rot||0)).toFixed(0)})" fill="url(#${grad||'pt-peach'})"/>`;
+  return `<g transform="translate(${x} ${y})">${P(petals, .9)}${P(`<circle r="${(r*.2).toFixed(1)}" fill="#D9A657"/>`, .95)}<circle r="${(r*.1).toFixed(1)}" fill="#B98E62" opacity=".55"/></g>`;
+}
+/* A stem with a daisy on top and a couple of slender leaves. */
+function wcDaisyStem(x, y, tx, ty, r, seed, grad){
+  const mx = (x+tx)/2 + ((seed%2)?10:-10), my = (y+ty)/2;
+  const ang = Math.atan2(tx-x, -(ty-y))*180/Math.PI;
+  return `<g filter="url(#wcInk)" stroke="#7D9A75" stroke-width="1.3" fill="none" opacity=".8"><path d="M${x} ${y} Q${mx} ${my} ${tx} ${ty}"/></g>
+    ${wcBranch({x:(x+mx)/2, y:(y+my)/2+10, angle:ang+(seed%2?-38:38), len:r*2.2, curve:6, leaves:3, size:r*1.3, seed, grads:['lf-sage','lf-dusty'], width:.24, spread:30, opacity:.85})}
+    ${wcDaisy(tx, ty, r, grad, seed*17)}`;
+}
+/* Torn-paper note: rough-edged kraft paper with a strip of tape. */
+function tornPaper(x, y, w, h, seed, fill){
+  const rnd = seededRandom(seed||7); const pts = [];
+  const j = ()=> (rnd()-.5)*4;
+  for(let i=0;i<=10;i++) pts.push(`${(x + w*i/10 + j()).toFixed(1)},${(y + j()).toFixed(1)}`);
+  for(let i=1;i<=8;i++) pts.push(`${(x + w + j()).toFixed(1)},${(y + h*i/8 + j()).toFixed(1)}`);
+  for(let i=9;i>=0;i--) pts.push(`${(x + w*i/10 + (rnd()-.5)*5).toFixed(1)},${(y + h + (rnd()-.5)*7).toFixed(1)}`);
+  for(let i=7;i>=1;i--) pts.push(`${(x + j()).toFixed(1)},${(y + h*i/8 + j()).toFixed(1)}`);
+  const poly = pts.join(' ');
+  return `<polygon points="${poly}" fill="#C9B79B" opacity=".35" transform="translate(2 3)"/>
+    <polygon points="${poly}" fill="${fill||'#EFE3CC'}"/>
+    <g filter="url(#wcWash)" opacity=".35"><ellipse cx="${x+w*.3}" cy="${y+h*.6}" rx="${w*.3}" ry="${h*.3}" fill="#E2CFAE"/></g>
+    <rect x="${x+w/2-22}" y="${y-9}" width="44" height="16" fill="#F7F0E2" opacity=".75" transform="rotate(-4 ${x+w/2} ${y})"/>`;
+}
+/* Painted artwork lives in img/ as transparent WebP files. */
+function artImg(name, cls, alt){ return `<img class="${cls||''}" src="img/${name}.webp?v=5" alt="${alt||''}" ${alt?'':'aria-hidden="true"'} decoding="async" draggable="false">`; }
+/* Hero still life: mug, stacked books, and a vase of dried flowers. */
+function stillLifeSVG(){ return artImg('still-life','still-life'); }
+const TILE_SPRIG = {
+  nec:{grads:['lf-sage','lf-olive','lf-dusty']}, save:{grads:['lf-sage','lf-dusty','lf-pale']},
+  rose:{grads:['lf-blush','lf-sage'], flower:true}, play:{grads:['lf-blush','lf-dusty'], flower:true},
+  sky:{grads:['lf-sky','lf-dusty','lf-pale']}, extra:{grads:['lf-gold','lf-dusty']}, debt:{grads:['lf-gold','lf-dusty']}, warn:{grads:['lf-gold','lf-dusty']}
+};
+/* A slender painted sprig tucked into the bottom-right of a tile. */
+function tileSprigSVG(tone, seed){
+  const t = TILE_SPRIG[tone] || TILE_SPRIG.save;
+  const s = seed||9;
+  return `<svg viewBox="0 0 130 130" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">
+    ${wcBranch({x:122, y:132, angle:-16, len:122, curve:-16, leaves:11, size:34, seed:s, grads:t.grads, width:.21, spread:26})}
+    ${wcBranch({x:100, y:132, angle:-48, len:74, curve:8, leaves:7, size:28, seed:s+5, grads:t.grads, width:.22, spread:28, opacity:.75})}
+    ${t.flower ? wcFlowerSprig(70, 126, -22, 56, 3, s) : ''}
   </svg>`;
 }
-function heroArtSVG(){
-  return `<svg viewBox="0 0 300 160" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">
-    <defs>${WC_FILTER('wcHero', 7)}</defs>
-    ${artBirds(196, 34, .9)}
-    <g filter="url(#wcHero)" opacity=".9">
-      ${artCloud(250, 46, .7)}
-      <path d="M90 160 C140 126 210 116 300 124 L300 160Z" fill="#A7C4A0" opacity=".65"/>
-      ${artCottage(236, 100, .78)}
-      ${artTree(206, 118, .75)}
-    </g>
-  </svg>`;
-}
+/* Sign-in scene: soft washes framed by slender branches and pink sprigs. */
 function authSceneSVG(){
-  return `<svg viewBox="0 0 400 560" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-    <defs>${WC_FILTER('wcAuth', 12)}</defs>
-    ${artBirds(250, 214, 1.4)}${artBirds(80, 280, 1)}
-    <g filter="url(#wcAuth)">
-      ${artCloud(300, 150, 2)}${artCloud(110, 236, 1.3)}
-      <path d="M0 380 C90 330 200 340 400 350 L400 560 L0 560Z" fill="#A7C4A0"/>
-      <path d="M0 430 C120 400 260 420 400 410 L400 560 L0 560Z" fill="#8DAE85"/>
-      <path d="M0 490 C140 470 270 490 400 480 L400 560 L0 560Z" fill="#7D9A75"/>
-      <path d="M150 560 C180 500 220 450 250 400" stroke="#E8C9A8" stroke-width="22" fill="none" opacity=".85"/>
-      ${artCottage(232, 300, 1.9)}
-      ${artTree(180, 340, 1.8)}
-      ${artTree(352, 360, 1.2)}
-    </g>
-    ${artCatOnWall(96, 418, 1.4)}
-    ${artFlower(36, 492, '#E79B8B', 1.6)}${artFlower(68, 506, '#FFFBF2', 1.4)}${artFlower(380, 500, '#E79B8B', 1.3)}
-    <g transform="translate(316 470)"><rect x="-3" y="0" width="6" height="80" fill="#84624A"/><path d="M-50 8 H40 L50 21 L40 34 H-50Z" fill="#E8C9A8" stroke="#84624A" stroke-width="1.5"/><text x="-4" y="27" text-anchor="middle" style="font-family:var(--font-hand);font-weight:600;font-size:18px;fill:#84624A">Better habits</text></g>
+  return `<svg viewBox="0 0 400 560" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g filter="url(#wcWash)"><rect x="-40" y="-40" width="480" height="640" fill="#F5EEDF"/><ellipse cx="300" cy="110" rx="170" ry="90" fill="#E2EDF6" opacity=".8"/><path d="M150 160 C240 140 340 150 370 200 C380 300 360 360 300 380 C230 390 170 370 150 330 C136 270 136 200 150 160Z" fill="#F2D9CE" opacity=".6"/><ellipse cx="70" cy="490" rx="190" ry="110" fill="#E4EDDF" opacity=".9"/></g>
+    ${wcBranch({x:30, y:560, angle:10, len:500, curve:40, leaves:22, size:80, seed:11, grads:['lf-sage','lf-olive','lf-sage'], width:.2, spread:24, stemWidth:2})}
+    ${wcBranch({x:0, y:540, angle:30, len:360, curve:24, leaves:16, size:70, seed:61, grads:['lf-dusty','lf-pale'], width:.21, spread:28, opacity:.75})}
+    ${wcFlowerSprig(70, 420, 20, 160, 7, 4)}${wcFlowerSprig(36, 360, 34, 100, 4, 9, 'pt-blush')}
+    ${wcBranch({x:-10, y:570, angle:58, len:240, curve:-30, leaves:11, size:84, seed:5, grads:['lf-olive','lf-sage','lf-dusty'], width:.34, spread:40})}
+    ${wcBranch({x:190, y:576, angle:-36, len:190, curve:16, leaves:10, size:72, seed:19, grads:['lf-sage','lf-pale','lf-dusty'], width:.32, spread:42})}
+    ${wcBranch({x:410, y:-10, angle:212, len:260, curve:-30, leaves:14, size:62, seed:29, grads:['lf-sage','lf-dusty','lf-pale'], width:.2, spread:26})}
+    ${wcFlowerSprig(330, 60, 200, 90, 4, 12)}
   </svg>`;
 }
-/* Small doodles for encouragement and empty states. */
+function heroArtSVG(){ return tileSprigSVG('nec', 3); }
+
+
+/* Small watercolor doodles for encouragement and empty states. */
 const DOODLES = {
-  sprout:`<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true"><path d="M14 34 H40 L37 50 H17Z" fill="#C9735E"/><rect x="12" y="30" width="30" height="6" rx="2" fill="#B5604F"/><path d="M27 30 V10" stroke="#627F5F" stroke-width="2"/><path d="M27 18 C18 16 14 10 14 6 C22 6 27 12 27 18Z" fill="#7D9A75"/><path d="M27 14 C35 12 39 6 40 2 C32 2 27 8 27 14Z" fill="#A7C4A0"/></svg>`,
-  teacup:`<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true"><path d="M20 14 c-2 -4 2 -6 0 -10 M28 14 c-2 -4 2 -6 0 -10" stroke="#B9A684" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M10 20 H40 C40 34 34 40 25 40 C16 40 10 34 10 20Z" fill="#FFFBF2" stroke="#84624A" stroke-width="1.6"/><path d="M40 24 C47 24 47 33 39 32" stroke="#84624A" stroke-width="1.6" fill="none"/><path d="M15 27 C18 25 21 29 24 27" stroke="#8FB7D9" stroke-width="1.6" fill="none"/><ellipse cx="25" cy="44" rx="19" ry="3.5" fill="#E8C9A8"/></svg>`,
-  books:`<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true"><rect x="8" y="36" width="38" height="8" rx="1.5" fill="#627F5F"/><rect x="11" y="28" width="32" height="8" rx="1.5" fill="#E79B8B"/><rect x="9" y="20" width="35" height="8" rx="1.5" fill="#8FB7D9"/><path d="M31 20 V8 C34 6 38 6 40 8 V20" fill="#D9A657"/><path d="M38 12 C42 8 44 4 45 2" stroke="#627F5F" stroke-width="1.6" fill="none"/><path d="M44 4 C47 3 49 5 49 7 C46 8 44 6 44 4Z" fill="#7D9A75"/></svg>`,
-  lantern:`<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true"><path d="M27 2 V8" stroke="#84624A" stroke-width="1.6"/><path d="M21 8 H33 L35 12 H19Z" fill="#84624A"/><rect x="18" y="12" width="18" height="24" rx="3" fill="#F6E7C9" stroke="#84624A" stroke-width="1.6"/><ellipse cx="27" cy="25" rx="5" ry="7" fill="#D9A657" opacity=".85"/><path d="M19 36 H35 L32 41 H22Z" fill="#84624A"/><circle cx="27" cy="25" r="11" fill="#D9A657" opacity=".12"/></svg>`,
-  flowers:`<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true">${'<g transform="translate(16 18)">'}<path d="M0 30 V8" stroke="#627F5F" stroke-width="1.6"/><g fill="#E79B8B"><circle cx="0" cy="2" r="4"/><circle cx="-5" cy="6" r="4"/><circle cx="5" cy="6" r="4"/><circle cx="-3" cy="11" r="4"/><circle cx="3" cy="11" r="4"/></g><circle cx="0" cy="6.5" r="2.5" fill="#D9A657"/></g><g transform="translate(36 22)"><path d="M0 26 V8" stroke="#627F5F" stroke-width="1.6"/><g fill="#FFFBF2" stroke="#E8C9A8" stroke-width=".8"><circle cx="0" cy="2" r="3.6"/><circle cx="-4.5" cy="6" r="3.6"/><circle cx="4.5" cy="6" r="3.6"/><circle cx="-2.6" cy="11" r="3.6"/><circle cx="2.6" cy="11" r="3.6"/></g><circle cx="0" cy="6.5" r="2.3" fill="#D9A657"/></g></svg>`
+  sun:`<svg class="sun-doodle" width="34" height="22" viewBox="0 0 34 22" aria-hidden="true"><g filter="url(#wcInk)" stroke="#D9A657" stroke-width="1.6" stroke-linecap="round" fill="none"><path d="M7 20 A10 10 0 0 1 27 20"/><path d="M17 4 V7 M6 9 L8 11 M28 9 L26 11 M2 17 H5 M29 17 H32"/></g><path d="M9 20 A8 8 0 0 1 25 20Z" fill="#F1D9A0" opacity=".7" filter="url(#wcPaint)"/></svg>`,
+  sprout:`<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true">${P('<path d="M14 34 H40 L37 50 H17Z" fill="#C9735E"/><rect x="12" y="30" width="30" height="6" rx="2" fill="#B5604F"/>', .9)}${INK('<path d="M27 30 Q26 20 27 10" stroke="#627F5F" stroke-width="2"/>')}${P('<path d="M27 18 C18 16 14 10 14 6 C22 6 27 12 27 18Z" fill="#7D9A75"/><path d="M27 14 C35 12 39 6 40 2 C32 2 27 8 27 14Z" fill="#A7C4A0"/>', .9)}</svg>`,
+  teacup:`<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true">${INK('<path d="M20 14 c-2 -4 2 -6 0 -10 M28 14 c-2 -4 2 -6 0 -10" stroke="#B9A684" stroke-width="1.6"/>')}${P('<ellipse cx="25" cy="44" rx="19" ry="3.5" fill="#E8C9A8"/><path d="M10 20 H40 C40 34 34 40 25 40 C16 40 10 34 10 20Z" fill="#FFFDF6"/>', .95)}${P('<path d="M14 26 C18 24 22 29 26 26 C29 24 33 27 36 25 L35 30 C30 33 20 33 15 30Z" fill="#8FB7D9"/>', .6)}${INK('<path d="M10 20 H40 C40 34 34 40 25 40 C16 40 10 34 10 20Z"/><path d="M40 24 C47 24 47 33 39 32"/>')}</svg>`,
+  books:`<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true">${P('<rect x="8" y="36" width="38" height="8" rx="1.5" fill="#627F5F"/>', .85)}${P('<rect x="11" y="28" width="32" height="8" rx="1.5" fill="#E79B8B"/>', .85)}${P('<rect x="9" y="20" width="35" height="8" rx="1.5" fill="#8FB7D9"/>', .85)}${P('<path d="M31 20 V8 C34 6 38 6 40 8 V20" fill="#D9A657"/>', .85)}${INK('<path d="M38 12 C42 8 44 4 45 2" stroke="#627F5F" stroke-width="1.6"/>')}${P('<path d="M44 4 C47 3 49 5 49 7 C46 8 44 6 44 4Z" fill="#7D9A75"/>', .9)}</svg>`,
+  lantern:`<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true"><g filter="url(#wcWash)" opacity=".5"><circle cx="27" cy="25" r="16" fill="#F1D9A0"/></g>${INK('<path d="M27 2 V8"/>')}${P('<path d="M21 8 H33 L35 12 H19Z" fill="#84624A"/><path d="M19 36 H35 L32 41 H22Z" fill="#84624A"/>', .9)}${P('<rect x="18" y="12" width="18" height="24" rx="3" fill="#F6E7C9"/>', .95)}${P('<ellipse cx="27" cy="25" rx="5" ry="7" fill="#D9A657"/>', .8)}${INK('<rect x="18" y="12" width="18" height="24" rx="3"/>')}</svg>`
 };
 function doodleNote(kind, title, text){
-  return `<div class="doodle-note">${DOODLES[kind]||DOODLES.sprout}<span>${title?`<span class="hand">${escapeHtml(title)}</span>`:''}${text}</span></div>`;
+  return `<div class="doodle-note">${kind===null ? '' : (DOODLES[kind]||DOODLES.sprout)}<span>${title?`<span class="hand">${escapeHtml(title)}</span>`:''}${text}</span></div>`;
 }
 /* A gentle, data-aware line of encouragement for the dashboard. */
 function encouragement(calc){
@@ -1613,10 +1734,11 @@ function encouragement(calc){
   const saved = calc.savings.actualTotal, target = calc.savings.budgetTotal;
   if(!calc.totalIncome && !calc.totalExpenses) return {title:'A fresh page', line:'Add this month’s income to get started.', art:'books'};
   if(over.length) return {title:'A gentle nudge', line:`${sectionLabel(over[0])} went a little over. Tomorrow is a new page.`, art:'teacup'};
-  if(target>0 && saved >= target) return {title:'Savings goal reached!', line:'Every peso you set aside grows your garden.', art:'flowers'};
+  if(target>0 && saved >= target) return {title:'Savings goal reached!', line:'Every peso you set aside grows your garden.', art:null};
   if(calc.netCashFlow > 0) return {title:'You’re doing great!', line:'Consistency builds a brighter tomorrow.', art:'sprout'};
   return {title:'Steady does it', line:'Small steps, big places.', art:'lantern'};
 }
+
 function brandLogoSVG(){
   return `<svg class="brand-logo" viewBox="0 0 44 44" aria-hidden="true">
     <path d="M16 40 C17 31 19 24 24 17" stroke="var(--accent-ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
@@ -1664,6 +1786,19 @@ function dashboardCtx(key){
   const prev = calc.hasPrev ? computeMonthShallowFull(calc.prevKey) : null;
   return {key, calc, m, prev, health: financialHealthScore(calc), days, daysLeft, dailyAllowance, allowanceNote, discretionary, isCurrentRealMonth, isPastMonth};
 }
+/* Name used in the dashboard greeting and account button. */
+function displayName(){
+  const e = earners()[0];
+  if(e && !/^me$/i.test(e.name.trim())) return e.name.trim();
+  if(state.settings.householdName) return state.settings.householdName;
+  const info = (typeof accountInfo==='function') ? accountInfo() : null;
+  if(info && info.email){ const n = info.email.split('@')[0].replace(/[._-]+/g,' ').replace(/\d+/g,'').trim(); if(n) return n.charAt(0).toUpperCase()+n.slice(1); }
+  return '';
+}
+function greeting(){
+  const h = new Date().getHours();
+  return h < 12 ? 'Good morning,' : h < 18 ? 'Good afternoon,' : 'Good evening,';
+}
 function viewDashboard(key){
   const ctx = dashboardCtx(key);
   const {calc, prev} = ctx;
@@ -1691,66 +1826,73 @@ function viewDashboard(key){
       <div class="dash-section-body">${def.render(ctx)}</div>
     </details>`;
   }).join('');
+  const name = displayName();
+  const daysTxt = ctx.isPastMonth ? 'This month has ended' : (ctx.isCurrentRealMonth ? `${ctx.daysLeft} day${ctx.daysLeft===1?'':'s'} left this month` : `${ctx.days} days in ${MONTH_NAMES[cur.monthIndex]}`);
 
   return `<div class="dash">
-    ${rolloverBanner}
-    <div class="dash-row-1">
-      <div class="card hero-card">
-        <span class="badge-ic xl t-nec">${icon('wallet')}</span>
-        <div class="hero-body">
-          <div class="hero-label">Available to Budget</div>
-          <div class="hero-amount">${money(calc.budgetableIncome)}</div>
-          <div class="hero-sub">after debt payments</div>
-        </div>
-        <span class="hero-split" aria-hidden="true"></span>
-        <div class="hero-body secondary" title="Cash received (income + borrowed) minus expenses, savings, and debt payments">
-          <div class="hero-label">Available Cash</div>
-          <div class="hero-amount ${calc.netCashFlow<0?'neg':''}">${money(calc.netCashFlow)}</div>
-          <div class="hero-sub">after spending &amp; saving</div>
-        </div>
-        <div class="hero-art">${heroArtSVG()}</div>
+    <header class="dash-header">
+      <div class="dash-greet">
+        <div class="dash-welcome">${greeting()}</div>
+        <h1 class="dash-title">${name ? escapeHtml(name) : 'Welcome back'} ${DOODLES.sun}</h1>
+        <div class="dash-sub">Here’s your financial overview for today.</div>
       </div>
-      ${kpiCard('Total Income', 'wallet', 'save', calc.totalIncome, deltaInfo(calc.totalIncome, prev && prev.totalIncome, true), 'income')}
-      ${kpiCard('Debt Paid', 'timer', 'rose', calc.debtPaymentsThisMonth, deltaInfo(calc.debtPaymentsThisMonth, prev && prev.debtPaymentsThisMonth, false), 'debts')}
-      ${kpiCard('Actual Savings', 'piggy-bank', 'extra', calc.savings.actualTotal, deltaInfo(calc.savings.actualTotal, prev && prev.savingsActualTotal, true), 'savings')}
+      <div class="hero-meta header-meta">
+        ${ctx.isPastMonth ? '' : `<span class="hero-chip" title="${escapeHtml(ctx.allowanceNote)}">${icon('sun','ic-sm')}${money(Math.floor(ctx.dailyAllowance))} / day to spend</span>`}
+        <span class="hero-chip">${icon('calendar-days','ic-sm')}${daysTxt}</span>
+      </div>
+      <div class="dash-corner">${stillLifeSVG()}</div>
+    </header>
+    ${rolloverBanner}
+
+    <div class="dash-top">
+    <section class="card hero-banner">
+      <div class="hero-banner-text">
+        <div class="hero-pair">
+          <div class="hero-fig">
+            <h2 class="hero-fig-title">Available to Budget <span class="info-dot" title="Income this month minus debt payments — the amount your budget split is based on.">${icon('info','ic-sm')}</span></h2>
+            <div class="hero-big">${money(calc.budgetableIncome)}</div>
+            <div class="hero-note">after debt payments</div>
+          </div>
+          <span class="hero-fig-split" aria-hidden="true"></span>
+          <div class="hero-fig">
+            <h2 class="hero-fig-title">Available Cash <span class="info-dot" title="Cash received (income + borrowed) minus expenses, savings, and debt payments.">${icon('info','ic-sm')}</span></h2>
+            <div class="hero-big ${calc.netCashFlow<0?'neg':''}">${money(calc.netCashFlow)}</div>
+            <div class="hero-note">after spending &amp; saving</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="kpi3">
+      ${kpiCard('This Month’s Income', 'leaf', 'save', calc.totalIncome, deltaInfo(calc.totalIncome, prev && prev.totalIncome, true), 'income')}
+      ${kpiCard('Debt Paid', 'credit-card', 'rose', calc.debtPaymentsThisMonth, deltaInfo(calc.debtPaymentsThisMonth, prev && prev.debtPaymentsThisMonth, false), 'debts')}
+      ${kpiCard('Saved This Month', 'piggy-bank', 'sky', calc.savings.actualTotal, deltaInfo(calc.savings.actualTotal, prev && prev.savingsActualTotal, true), 'savings')}
+    </div>
     </div>
 
-    <div class="dash-row-2">
+    <div class="dash-grid2">
       <div class="card">
         <div class="card-head"><h3 class="card-title">Budget Overview</h3><span class="card-chip">${ctx.isCurrentRealMonth?'This Month':MONTH_NAMES[cur.monthIndex].slice(0,3)+' '+cur.year}</span></div>
-        <div class="card-fill budget-fill">${budgetOverviewRows(calc)}</div>
-        <div class="divider" style="margin:22px 0 20px;"></div>
-        <div class="card-fill">
-          <div class="card-head" style="margin-bottom:12px;"><h3 class="card-title">Spending Breakdown</h3></div>
-          ${spendingBreakdown(calc)}
-        </div>
+        ${budgetDonut(calc)}
       </div>
-      <div class="dash-col">
-        ${(()=>{ const e = encouragement(calc); return `<div class="card encourage-card">${DOODLES[e.art]}<div><b>${escapeHtml(e.title)}</b><div class="hand">${escapeHtml(e.line)}</div></div></div>`; })()}
-        <div class="card">
-          <div class="card-head"><h3 class="card-title">Coming Up</h3><span style="display:flex;gap:8px;align-items:center;">${(()=>{ const n = overdueCount(ctx.key); return n ? `<button class="card-chip rose" data-action="goto" data-view="calendar">${icon('circle-alert','ic-sm')}${n} overdue</button>` : ''; })()}<button class="card-link" data-action="goto" data-view="calendar">View All</button></span></div>
-          ${upcomingList(ctx.key)}
-        </div>
-        <div class="card">
-          <div class="card-head"><h3 class="card-title">Savings Progress</h3><button class="card-chip rose" data-action="goto" data-view="savings">${icon('pencil','ic-sm')}Edit Goals</button></div>
-          ${savingsProgress(calc)}
-        </div>
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">Upcoming Bills / Paydays</h3><span style="display:flex;gap:8px;align-items:center;">${(()=>{ const n = overdueCount(ctx.key); return n ? `<button class="card-chip rose" data-action="goto" data-view="calendar">${icon('circle-alert','ic-sm')}${n} overdue</button>` : ''; })()}<button class="card-link" data-action="goto" data-view="calendar">View Calendar ${icon('arrow-right','ic-sm')}</button></span></div>
+        ${upcomingList(ctx.key)}
+      </div>
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">Spending Breakdown</h3><span class="card-chip">By category</span></div>
+        ${categoryBars(ctx)}
+      </div>
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">Savings Goals</h3><button class="card-link" data-action="goto" data-view="savings">View All ${icon('arrow-right','ic-sm')}</button></div>
+        ${savingsProgress(calc)}
+        <button class="add-goal-btn" data-action="add-goal">${icon('plus','ic-sm')}Add a Savings Goal</button>
       </div>
     </div>
 
-    <div class="dash-row-3">
-      <div class="card">
-        <div class="card-head"><h3 class="card-title">Expenses by Category</h3>
-          <select class="card-chip" id="dashCatFilter" aria-label="Filter categories">
-            ${[['all','All expenses'],['necessities','Necessities'],['extra','Extra'],['playjar','Play Jar']].map(([v,l])=>`<option value="${v}" ${curDashCatFilter===v?'selected':''}>${l}</option>`).join('')}
-          </select>
-        </div>
-        ${expensesByCategoryTable(ctx)}
-      </div>
-      <div class="card">
-        <div class="card-head"><h3 class="card-title">Month Comparison</h3><span class="card-chip">vs ${calc.hasPrev?MONTH_NAMES[cur_moOf(calc.prevKey)]:'last month'}</span></div>
-        ${monthComparisonTiles(calc, prev)}
-      </div>
+    <div class="card">
+      <div class="card-head"><h3 class="card-title">Month Comparison</h3><span class="card-chip">Income vs Expenses</span></div>
+      ${monthComparison(calc, prev)}
     </div>
 
     ${moreHtml ? `<div class="card-head" style="margin:8px 0 -4px;"><h3 class="card-title">More Insights</h3><button class="card-chip" data-action="customize-dashboard">${icon('sliders-horizontal','ic-sm')}Customize</button></div>
@@ -1758,114 +1900,255 @@ function viewDashboard(key){
       `<div style="text-align:center;"><button class="card-chip" data-action="customize-dashboard">${icon('sliders-horizontal','ic-sm')}Customize dashboard</button></div>`}
   </div>`;
 }
+/* Tile used across pages: round icon, label, serif figure, change vs last month, and a little bar graphic. */
+const KPI_TONE_ALIAS = {save:'save', nec:'nec', rose:'rose', play:'rose', sky:'sky', extra:'extra', debt:'debt', warn:'debt'};
 function kpiCard(label, ic, tone, value, delta, view, display){
-  return `<div class="card kpi-card" ${view?`data-action="goto" data-view="${view}" style="cursor:pointer;"`:''}>
-    <span class="badge-ic lg t-${tone}">${icon(ic)}</span>
-    <div class="kpi-main">
-      <div class="kpi-label">${label}</div>
-      <div class="kpi-bottom"><div class="kpi-value">${display!=null?escapeHtml(display):money(value)}</div>${deltaPill(delta)}</div>
+  const t = KPI_TONE_ALIAS[tone] || 'save';
+  const d = delta ? `<div class="kpi-tile-delta ${delta.cls}">${delta.arrow==='minus'?'—':icon(delta.arrow,'ic-xs')} ${pct(delta.pct)} <span>from last month</span></div>` : '';
+  return `<div class="card kpi-tile tone-${t}" ${view?`data-action="goto" data-view="${view}" style="cursor:pointer;"`:''}>
+    <span class="kpi-circle">${icon(ic)}</span>
+    <div class="kpi-tile-body">
+      <div class="kpi-tile-label">${label}</div>
+      <div class="kpi-tile-value">${display!=null?escapeHtml(display):money(value)}</div>
+      ${d}
     </div>
   </div>`;
 }
-function budgetOverviewRows(calc){
+function budgetRowsData(calc){
   const a = state.settings.allocations;
-  const rows = [
+  return [
     {key:'necessities', view:'necessities', pctA:a.necessities, actual:calc.necessities.actual, budget:calc.necessities.budget},
     {key:'extra', view:'extra', pctA:a.extra, actual:calc.extra.actual, budget:calc.extra.budget},
     {key:'playjar', view:'playjar', pctA:a.playjar, actual:calc.playjar.actual, budget:calc.playjar.budget},
     {key:'savings', view:'savings', pctA:a.savings, actual:calc.savings.actualTotal, budget:calc.savings.budgetTotal}
   ];
-  return `<div class="budget-rows">${rows.map(r=>{
-    const b = BUCKETS[r.key];
-    const ratio = r.budget>0 ? r.actual/r.budget : (r.actual>0 ? 1 : 0);
-    const over = ratio > 1.0001;
-    return `<button class="budget-row" data-action="goto" data-view="${r.view}" title="Open ${b.label}">
-      <span class="badge-ic t-${b.tone}">${icon(b.icon)}</span>
-      <span class="br-name">${b.label}</span>
-      <span class="br-pct">${pct(r.pctA)}</span>
-      <span class="bar-track"><span class="bar-fill bf-${b.tone} ${over?'over':''}" style="display:block;width:${Math.min(100, ratio*100).toFixed(1)}%"></span></span>
-      <span class="br-amt"><b ${over?'style="color:var(--danger-ink)"':''}>${money(r.actual)}</b> <span>/ ${money(r.budget)}</span></span>
-    </button>`;
-  }).join('')}</div>`;
 }
 function spendingSlices(calc){
   return [
     {key:'necessities', label:'Necessities', amount:calc.necessities.actual},
     {key:'extra', label:'Extra Expenses', amount:calc.extra.actual},
     {key:'playjar', label:'Play Jar', amount:calc.playjar.actual},
-    {key:'debt', label:'Debt Payments', amount:calc.debtPaymentsThisMonth}
+    {key:'debt', label:'Debt Payments', amount:calc.debtPaymentsThisMonth},
+    {key:'savings', label:'Savings', amount:calc.savings.actualTotal}
   ];
 }
-function spendingBreakdown(calc){
+/* Budget overview: donut of where the month's money went, legend with amounts and shares. */
+function budgetDonut(calc){
   const slices = spendingSlices(calc);
   const total = sumBy(slices, s=>s.amount);
-  const tone = {necessities:'nec', extra:'extra', playjar:'play', debt:'debt'};
-  return `<div class="breakdown">
-    ${total>0 ? `<div class="donut-wrap"><canvas id="dashDonut" aria-label="Spending breakdown chart"></canvas>
-      <div class="donut-center"><b>${money(Math.round(total))}</b><span>Total spent<br>this month</span></div></div>`
-      : `<div class="empty-chart">No spending recorded yet this month</div>`}
-    <div class="legend-list">${slices.map(s=>`<div class="legend-item">
+  const tone = {necessities:'nec', extra:'extra', playjar:'play', debt:'debt', savings:'save'};
+  const budget = sumBy(budgetRowsData(calc), r=>r.budget);
+  return `<div class="bd-wrap">
+    ${total>0 ? `<div class="donut-wrap"><canvas id="dashDonut" aria-label="Where this month's money went"></canvas>
+      <div class="donut-center"><b>${money(Math.round(total))}</b><span>used</span></div></div>`
+      : `<div class="empty-chart">Nothing recorded yet this month</div>`}
+    <div class="bd-legend">${slices.map(s=>`<button class="bd-item" data-action="goto" data-view="${s.key==='debt'?'debts':s.key==='savings'?'savings':s.key}">
       <span class="dot" style="background:var(--c-${tone[s.key]})"></span>
-      <span>${s.label}</span>
-      <span class="lg-pct">${total>0?pct(s.amount/total*100):'—'}</span>
-      <span class="lg-amt">${money(s.amount)}</span>
-    </div>`).join('')}</div>
+      <span class="bd-name">${s.label}</span>
+      <span class="bd-amt">${money(Math.round(s.amount))}</span>
+      <span class="bd-pct">${total>0?pct(s.amount/total*100):'—'}</span>
+    </button>`).join('')}
+    ${budget>0?`<div class="bd-foot">${money(Math.round(total))} used of ${money(Math.round(budget))} planned</div>`:''}</div>
   </div>`;
 }
+/* Draws percentages on the donut slices themselves. */
+const donutLabelsPlugin = {
+  id:'donutLabels',
+  afterDatasetsDraw(chart){
+    const {ctx} = chart; const ds = chart.data.datasets[0]; const total = ds.data.reduce((a,b)=>a+b,0);
+    if(!total) return;
+    ctx.save();
+    ctx.font = "600 11px Lora, serif"; ctx.textAlign='center'; ctx.textBaseline='middle';
+    chart.getDatasetMeta(0).data.forEach((arc,i)=>{
+      const p = ds.data[i]/total*100; if(p < 7) return;
+      const pos = arc.tooltipPosition();
+      ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.fillText(Math.round(p)+'%', pos.x, pos.y);
+    });
+    ctx.restore();
+  }
+};
 function drawDashboardDonut(){
   destroyChart('dashDonut');
   const el = document.getElementById('dashDonut');
+  if(el){
+    const calc = computeMonth(monthKey(cur.year, cur.monthIndex));
+    const slices = spendingSlices(calc).filter(s=>s.amount>0);
+    chartRegistry['dashDonut'] = new Chart(el, {
+      type:'doughnut',
+      data:{ labels:slices.map(s=>s.label), datasets:[{data:slices.map(s=>s.amount), backgroundColor:slices.map(s=>bucketColor(s.key)), borderWidth:2, borderColor:cssVar('--surface')}] },
+      options:{ responsive:true, maintainAspectRatio:false, cutout:'60%',
+        plugins:{ legend:{display:false},
+          tooltip:{ callbacks:{ label:(item)=>{
+            const total = item.dataset.data.reduce((a,b)=>a+b,0);
+            return ` ${item.label}: ${money(item.parsed)} (${total>0?pct(item.parsed/total*100):'0%'})`;
+          }}}
+        }
+      },
+      plugins:[donutLabelsPlugin]
+    });
+  }
+  drawDashCompare();
+}
+/* Spending breakdown: this month's top categories across all expense sections. */
+function categoryBars(ctx){
+  const totals = {};
+  ['necessities','extra','playjar'].forEach(sec=>{
+    (ctx.m[sec].expenses||[]).forEach(e=>{
+      const k = e.mainCategory || 'Other';
+      if(!totals[k]) totals[k] = {name:k, sec, amount:0};
+      totals[k].amount += Number(e.amount)||0;
+    });
+  });
+  let rows = Object.values(totals).sort((a,b)=>b.amount-a.amount);
+  if(!rows.length) return doodleNote('teacup', 'Nothing spent yet', 'Your top spending categories will show here once you log expenses.');
+  if(rows.length > 6){
+    const rest = rows.slice(5);
+    rows = rows.slice(0,5).concat([{name:'Others', sec:null, amount:sumBy(rest, r=>r.amount)}]);
+  }
+  const total = sumBy(rows, r=>r.amount);
+  const max = Math.max(...rows.map(r=>r.amount), 1);
+  const tones = ['nec','extra','play','save','debt','muted'];
+  return `<div class="cb2-list">${rows.map((r,i)=>{
+    const tone = r.sec ? catTone(r.sec, r.name) : 'muted';
+    const barTone = tones[i % tones.length];
+    return `<button class="cb2-row" ${r.sec?`data-action="goto" data-view="${r.sec}"`:''}>
+      <span class="cb2-ic t-${tone}">${icon(r.sec ? catIconFor(r.sec, r.name) : 'ellipsis','ic-sm')}</span>
+      <span class="cb2-name">${escapeHtml(r.name)}</span>
+      <span class="bar-track"><span class="bar-fill bf-${barTone==='muted'?'debt':barTone}" style="display:block;width:${(r.amount/max*100).toFixed(1)}%"></span></span>
+      <span class="cb2-amt">${money(r.amount)}</span>
+      <span class="cb2-pct">${pct(r.amount/total*100)}</span>
+    </button>`;
+  }).join('')}</div>`;
+}
+function upcomingList(key){
+  const items = computeUpcomingItems(key).filter(it=>it.date>=toISO(today)).slice(0,5);
+  if(!items.length) return doodleNote('teacup', 'All quiet for now', 'Nothing due in the next 30 days. Add paydays in Settings or recurring bills from the Calendar.');
+  const kind = {payday:'Salary', income:'Recurring income', bill:'Bill', installment:'Installment', loan:'Loan payment'};
+  return `<div class="up-list">${items.map(it=>{
+    const d = new Date(it.date+'T00:00:00');
+    const ui = upcomingIcon(it);
+    const days = Math.round((d - new Date(toISO(today)+'T00:00:00'))/86400000);
+    const incoming = it.kind==='payday' || it.kind==='income';
+    const when = days===0 ? 'Today' : days===1 ? (incoming?'Tomorrow':'Due tomorrow') : (incoming?`In ${days} days`:`Due in ${days} days`);
+    return `<div class="up-row">
+      <div class="date-tile"><small>${d.toLocaleDateString('en-US',{month:'short'})}</small><b>${String(d.getDate()).padStart(2,'0')}</b></div>
+      <span class="badge-ic t-${ui.tone}">${icon(ui.ic)}</span>
+      <div class="up-name"><b>${escapeHtml(it.label)}</b><small>${kind[it.kind]||''}</small></div>
+      <div class="up-right"><b>${it.amount!==null?money(it.amount):'—'}</b><span class="up-when ${incoming?'in':'out'}">${it.status==='Received'?'Received':when}</span></div>
+    </div>`;
+  }).join('')}</div>`;
+}
+function savingsProgress(calc){
+  const s = calc.savings;
+  const goals = s.goals.filter(g=>g.active);
+  if(!goals.length){
+    return doodleNote('sprout', 'Plant your first goal', 'Add a savings goal and set how much you’ll put aside each month.');
+  }
+  return `<div class="sp-list">${goals.slice(0,4).map(g=>{
+    const total = totalSavedAllTime(g.id);
+    const hasTarget = g.target>0;
+    const ratio = hasTarget ? total/g.target : (g.budget>0 ? g.actual/g.budget : 0);
+    const tone = iconTone(goalIconFor(g),'nec');
+    return `<div class="sp-row">
+      <span class="sp-thumb t-${tone}">${icon(goalIconFor(g))}</span>
+      <div class="sp-main">
+        <b class="sp-name">${escapeHtml(g.name)}</b>
+        <span class="sp-amt">${money(hasTarget?total:g.actual)} / ${money(hasTarget?g.target:g.budget)}</span>
+        <div class="sp-bar">${barHtml(ratio, 'nec', true)}<span class="sp-pct">${pct(ratio*100)}</span></div>
+      </div>
+      ${kebab('goal',{id:g.id})}
+    </div>`;
+  }).join('')}</div>`;
+}
+/* Six-month income vs expenses bars, with a short handwritten summary. */
+function monthComparison(calc, prev){
+  const lines = [];
+  if(prev){
+    const ch = (a,b)=> b>0 ? (a-b)/b*100 : null;
+    const inc = ch(calc.totalIncome, prev.totalIncome), exp = ch(calc.totalExpenses, prev.totalExpenses);
+    if(inc!==null) lines.push(`Your income ${inc>=0?'increased':'decreased'} by <b>${pct(Math.abs(inc))}</b>`);
+    if(exp!==null) lines.push(`expenses ${exp<=0?'decreased':'increased'} by <b>${pct(Math.abs(exp))}</b>`);
+  }
+  const e = encouragement(calc);
+  const summary = lines.length ? `${lines.join(' and ')} compared to last month.` : 'Comparisons appear once you have a previous month recorded.';
+  return `<div class="mc-wrap">
+    <div class="mc-chart"><canvas id="dashCompare" aria-label="Income vs expenses for the last six months"></canvas></div>
+    <div class="mc-note">
+      ${e.art ? DOODLES[e.art] : ''}
+      <div class="hand">${escapeHtml(e.title)}</div>
+      <p>${summary}</p>
+    </div>
+  </div>`;
+}
+function drawDashCompare(){
+  destroyChart('dashCompare');
+  const el = document.getElementById('dashCompare');
   if(!el) return;
-  const calc = computeMonth(monthKey(cur.year, cur.monthIndex));
-  const slices = spendingSlices(calc).filter(s=>s.amount>0);
-  chartRegistry['dashDonut'] = new Chart(el, {
-    type:'doughnut',
-    data:{ labels:slices.map(s=>s.label), datasets:[{data:slices.map(s=>s.amount), backgroundColor:slices.map(s=>bucketColor(s.key)), borderWidth:0, spacing:2, borderRadius:2}] },
-    options:{ responsive:true, maintainAspectRatio:false, cutout:'70%',
-      plugins:{ legend:{display:false},
-        tooltip:{ callbacks:{ label:(item)=>{
-          const total = item.dataset.data.reduce((a,b)=>a+b,0);
-          return ` ${item.label}: ${money(item.parsed)} (${total>0?pct(item.parsed/total*100):'0%'})`;
-        }}}
-      }
-    }
+  const labels = [], income = [], expenses = [];
+  for(let i=5;i>=0;i--){
+    let y = cur.year, m = cur.monthIndex - i; while(m<0){ m+=12; y--; }
+    const key = monthKey(y,m);
+    const c = state.months[key] ? computeMonthShallowFull(key) : null;
+    labels.push(MONTH_NAMES[m].slice(0,3)); income.push(c?c.totalIncome:0); expenses.push(c?c.totalExpenses+c.debtPaymentsThisMonth:0);
+  }
+  const tick = (v)=>{ const n = Number(v); return Math.abs(n)>=1000 ? currencySymbol()+(n/1000).toLocaleString(undefined,{maximumFractionDigits:0})+'K' : money(n); };
+  chartRegistry['dashCompare'] = new Chart(el, {
+    type:'bar',
+    data:{ labels, datasets:[
+      {label:'Income', data:income, backgroundColor:bucketColor('necessities'), borderRadius:6, maxBarThickness:16},
+      {label:'Expenses', data:expenses, backgroundColor:cssVar('--c-play'), borderRadius:6, maxBarThickness:16}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom'}, tooltip:{callbacks:{label:(it)=>` ${it.dataset.label}: ${money(it.parsed.y)}`}} },
+      scales:{ x:{grid:{display:false}}, y:{border:{display:false}, ticks:{callback:tick, maxTicksLimit:5}} } }
   });
 }
 function overdueCount(key){
   const t0 = toISO(today);
   return computeUpcomingItems(key).filter(it=>it.date<t0 && it.status==='Overdue').length;
 }
-function upcomingList(key){
-  const items = computeUpcomingItems(key).filter(it=>it.date>=toISO(today)).slice(0,5);
-  if(!items.length) return doodleNote('teacup', 'All quiet for now', 'Nothing due in the next 30 days. Add paydays in Settings or recurring bills from the Calendar.');
-  return `<div class="list-rows">${items.map(it=>{
-    const d = new Date(it.date+'T00:00:00');
-    const ui = upcomingIcon(it);
-    const statusPill = it.status==='Overdue' ? `<small style="color:var(--danger-ink);font-weight:700;">Overdue</small>` : it.status==='Received' ? `<small style="color:var(--success-ink);font-weight:700;">Received</small>` : `<small>${relativeDayLabel(it.date)}</small>`;
-    return `<div class="list-row">
-      <div class="lr-date">${fmtDateHuman(it.date)}<span>${d.toLocaleDateString('en-US',{weekday:'short'})}</span></div>
-      <span class="badge-ic t-${ui.tone}">${icon(ui.ic)}</span>
-      <div class="lr-name">${escapeHtml(it.label)}${statusPill}</div>
-      <div class="lr-amt">${it.amount!==null?money(it.amount):'—'}</div>
-      <span style="color:var(--text-3);display:flex;justify-content:center;">${it.kind==='payday'?'':icon('chevron-right','ic-sm')}</span>
-    </div>`;
-  }).join('')}</div>`;
+
+/* ---------- Global search (top bar) ---------- */
+function searchEverything(q){
+  q = q.trim().toLowerCase();
+  if(q.length < 2) return [];
+  const out = [];
+  Object.keys(state.months).sort().reverse().forEach(k=>{
+    const m = state.months[k];
+    ['necessities','extra','playjar'].forEach(sec=> (m[sec].expenses||[]).forEach(e=>{
+      const text = `${e.description||''} ${e.mainCategory||''} ${e.subCategory||''}`.toLowerCase();
+      if(text.includes(q)) out.push({type:'Expense', icon:catIconFor(sec, e.mainCategory, e.subCategory), tone:catTone(sec, e.mainCategory, e.subCategory), title:e.description || expenseLeafLabel(e), sub:`${expenseLeafLabel(e)} · ${fmtDateLong(e.date)}`, amount:-e.amount, go:{month:k, view:sec}});
+    }));
+    (m.income||[]).forEach(i=>{
+      const text = `${i.description||'salary'} ${earnerName(i.person)}`.toLowerCase();
+      if(text.includes(q)) out.push({type:'Income', icon:'banknote', tone:'save', title:i.description||'Salary', sub:`${earnerName(i.person)} · ${fmtDateLong(i.date)}`, amount:i.amount, go:{month:k, view:'income'}});
+    });
+  });
+  state.recurringBills.forEach(r=>{ if(r.name.toLowerCase().includes(q)) out.push({type:'Bill', icon:'repeat', tone:'rose', title:r.name, sub:`Recurring · ${frequencyLabel(r)}`, amount:-r.expectedAmount, go:{view:'calendar'}}); });
+  state.settings.savingsGoals.forEach(g=>{ if(g.name.toLowerCase().includes(q)) out.push({type:'Goal', icon:goalIconFor(g), tone:'save', title:g.name, sub:'Savings goal', amount:null, go:{view:'savings'}}); });
+  state.debts.forEach(d=>{ if(`${d.lender} ${d.borrower||''}`.toLowerCase().includes(q)) out.push({type:'Debt', icon:'landmark', tone:'debt', title:d.lender, sub:`${DEBT_TYPE_LABEL[d.repaymentType]} · ${money(debtBalance(d))} left`, amount:null, go:{view:'debts', debt:d.id}}); });
+  return out.slice(0, 8);
 }
-function savingsProgress(calc){
-  const s = calc.savings;
-  const ratio = s.budgetTotal>0 ? s.actualTotal/s.budgetTotal : 0;
-  const goals = s.goals.filter(g=>g.active);
-  if(s.budgetTotal<=0 && s.actualTotal<=0){
-    return `<div class="empty-note"><span class="badge-ic sm t-save">${icon('sprout')}</span><span>Set how much you'll save this month on the <a class="linklike" data-action="goto" data-view="savings">Savings</a> page — it's split across your goals.</span></div>`;
-  }
-  return `<div class="save-summary"><div><span class="big">${pct(ratio*100)}</span> <span class="of">of ${money(s.budgetTotal)}</span></div><div class="saved"><b>${money(s.actualTotal)}</b> saved</div></div>
-    <div class="bar-track" style="height:14px;"><span class="bar-fill bf-nec" style="display:block;width:${Math.min(100,ratio*100).toFixed(1)}%"></span></div>
-    <div class="goal-rows">${goals.map((g,i)=>`<div class="goal-row">
-      <span class="badge-ic sm t-${iconTone(goalIconFor(g),'nec')}">${icon(goalIconFor(g))}</span>
-      <span>${escapeHtml(g.name)}</span>
-      <span class="g-pct">${pct(g.allocation)}</span>
-      <span class="g-amt"><b>${money(g.actual)}</b> <span>/ ${money(g.budget)}</span></span>
-    </div>`).join('')}</div>`;
+function renderSearchResults(input){
+  const results = searchEverything(input.value);
+  const box = document.getElementById('searchResults');
+  if(!box) return;
+  if(input.value.trim().length < 2){ box.hidden = true; box.innerHTML=''; return; }
+  box.hidden = false;
+  box.innerHTML = results.length ? results.map((r,i)=>`<button class="sr-item" data-sr="${i}">
+      <span class="badge-ic sm t-${r.tone}">${icon(r.icon)}</span>
+      <span class="sr-text"><b>${escapeHtml(r.title)}</b><small>${escapeHtml(r.type)} · ${escapeHtml(r.sub)}</small></span>
+      ${r.amount!=null?`<span class="sr-amt ${r.amount<0?'':'pos'}">${money(Math.abs(r.amount))}</span>`:''}
+    </button>`).join('') : `<div class="sr-empty">No matches for “${escapeHtml(input.value.trim())}”.</div>`;
+  box._results = results;
+}
+function openSearchResult(r){
+  if(!r) return;
+  if(r.go.month){ cur.year = Number(r.go.month.slice(0,4)); cur.monthIndex = Number(r.go.month.slice(5,7))-1; }
+  const input = document.getElementById('globalSearch'); if(input){ input.value=''; input.blur(); }
+  const box = document.getElementById('searchResults'); if(box){ box.hidden = true; box.innerHTML=''; }
+  if(r.go.debt){ curDebtDetailId = null; navTo('debts'); curDebtDetailId = r.go.debt; renderAll(); return; }
+  navTo(r.go.view);
 }
 function expensesByCategoryTable(ctx){
   const secs = curDashCatFilter==='all' ? ['necessities','extra','playjar'] : [curDashCatFilter];
@@ -3610,9 +3893,8 @@ function openOnboardingModal(){
   function render(error){
     root.innerHTML = `<div class="onboard">
       <aside class="ob-side">
-        <div class="brand">${brandLogoSVG()}<div class="brand-text"><div class="brand-name">${escapeHtml(APP_CONFIG.appName)}</div><div class="brand-tag">Personal finance</div></div></div>
+        <div class="brand">${brandLogoSVG()}<div class="brand-text"><div class="brand-name">${escapeHtml(APP_CONFIG.appName)}</div></div></div>
         <ol class="ob-steps">${STEPS.map((s,i)=>`<li class="${i===step?'active':''} ${i<step?'done':''}"><span>${i<step?icon('check','ic-sm'):i+1}</span>${s}</li>`).join('')}</ol>
-        <div class="ob-art">${sidebarArtSVG()}</div>
       </aside>
       <main class="ob-main">
         <div class="ob-card card">
@@ -3875,22 +4157,27 @@ function backupAlerts(cfg){
   return [{id:`backup|${toISO(today).slice(0,7)}`, tone:'info', icon:'download', title:'Time for a backup', detail: last ? `Your last export was ${days} days ago.` : 'You haven’t exported a backup yet. It takes one click.', action:'export-data'}];
 }
 function visibleAlerts(){ const d = dismissedAlerts(); return computeAlerts().filter(a=>!d[a.id]); }
+/* Alerts already opened in the bell panel on this device; the badge only counts new ones. */
+function seenAlertIds(){ try{ return new Set(JSON.parse(localStorage.getItem('kaban.alertsSeen')||'[]')); }catch(e){ return new Set(); } }
+function markAlertsSeen(list){ try{ localStorage.setItem('kaban.alertsSeen', JSON.stringify(list.map(a=>a.id))); }catch(e){} }
 function renderAlertBell(){
   const btn = document.getElementById('alertBtn');
   if(!btn) return;
-  const list = visibleAlerts();
+  const seen = seenAlertIds();
+  const list = visibleAlerts().filter(a=>!seen.has(a.id));
   const danger = list.some(a=>a.tone==='danger');
   btn.innerHTML = `${icon('bell')}${list.length?`<span class="bell-count ${danger?'danger':''}">${list.length>9?'9+':list.length}</span>`:''}`;
-  btn.title = list.length ? `${list.length} alert${list.length===1?'':'s'}` : 'No alerts';
+  btn.title = list.length ? `${list.length} new alert${list.length===1?'':'s'}` : 'Alerts';
 }
 function openAlertsPanel(anchor){
   const list = visibleAlerts();
+  markAlertsSeen(list); renderAlertBell();
   const html = `<div class="alerts-head"><b>Alerts</b><button class="card-link" data-alert-settings>Settings</button></div>
     ${list.length ? list.map((a,i)=>`<div class="alert-item">
       <span class="badge-ic sm t-${a.tone==='danger'?'debt':a.tone==='warn'?'extra':'save'}">${icon(a.icon)}</span>
       <button class="alert-body" data-alert-go="${i}"><b>${escapeHtml(a.title)}</b><small>${escapeHtml(a.detail)}</small></button>
       <button class="icon-btn" data-alert-dismiss="${i}" aria-label="Dismiss">${icon('x','ic-sm')}</button>
-    </div>`).join('') : `<div style="margin:6px;">${doodleNote('flowers', 'All caught up', 'No alerts right now.')}</div>`}`;
+    </div>`).join('') : `<div style="margin:6px;">${doodleNote(null, 'All caught up', 'No alerts right now.')}</div>`}`;
   const pop = openMenu(anchor, [], {html});
   pop.classList.add('alerts-pop');
   pop.addEventListener('click', e=>{

@@ -23,32 +23,77 @@
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+<!-- Shared watercolor filters used by the illustrations -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="lf-sage" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#62785C"/><stop offset=".5" stop-color="#8FA285"/><stop offset="1" stop-color="#C3CFB9"/></linearGradient>
+    <linearGradient id="lf-dusty" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7D8E76"/><stop offset=".55" stop-color="#A7B59F"/><stop offset="1" stop-color="#D6DDCE"/></linearGradient>
+    <linearGradient id="lf-olive" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#56694F"/><stop offset=".5" stop-color="#7E9372"/><stop offset="1" stop-color="#AFBFA2"/></linearGradient>
+    <linearGradient id="lf-pale" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#A3B39B"/><stop offset=".6" stop-color="#C8D2BF"/><stop offset="1" stop-color="#E6EADF"/></linearGradient>
+    <radialGradient id="pt-pink" cx=".5" cy=".85" r=".9"><stop offset="0" stop-color="#D98577"/><stop offset=".55" stop-color="#EBA79A"/><stop offset="1" stop-color="#F8D8CF"/></radialGradient>
+    <linearGradient id="lf-deep" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4F6E4B"/><stop offset=".55" stop-color="#7F9F74"/><stop offset="1" stop-color="#B4CBA4"/></linearGradient>
+    <linearGradient id="lf-mid" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#678862"/><stop offset=".55" stop-color="#9DBB8E"/><stop offset="1" stop-color="#CADBBA"/></linearGradient>
+    <linearGradient id="lf-light" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#86A67E"/><stop offset=".6" stop-color="#B7CEA8"/><stop offset="1" stop-color="#DFE8D2"/></linearGradient>
+    <linearGradient id="lf-grey" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8E9C88"/><stop offset=".6" stop-color="#B4BFAE"/><stop offset="1" stop-color="#D9DFD3"/></linearGradient>
+    <linearGradient id="lf-blush" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#CF7F70"/><stop offset=".6" stop-color="#E9AE9F"/><stop offset="1" stop-color="#F7D9CF"/></linearGradient>
+    <linearGradient id="lf-gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#B98E62"/><stop offset=".6" stop-color="#DDBE98"/><stop offset="1" stop-color="#F2E3CC"/></linearGradient>
+    <linearGradient id="lf-sky" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6F8FA6"/><stop offset=".6" stop-color="#A3C0D6"/><stop offset="1" stop-color="#D7E5EF"/></linearGradient>
+    <radialGradient id="pt-peach" cx=".5" cy=".85" r=".9"><stop offset="0" stop-color="#E08C7B"/><stop offset=".55" stop-color="#EFB3A3"/><stop offset="1" stop-color="#FBE2D9"/></radialGradient>
+    <radialGradient id="pt-blush" cx=".5" cy=".85" r=".9"><stop offset="0" stop-color="#E6A08F"/><stop offset=".6" stop-color="#F4CABD"/><stop offset="1" stop-color="#FDEDE7"/></radialGradient>
+    <radialGradient id="pt-cream" cx=".5" cy=".85" r=".9"><stop offset="0" stop-color="#E8C9A8"/><stop offset=".6" stop-color="#F6E6D3"/><stop offset="1" stop-color="#FFFBF2"/></radialGradient>
+    <filter id="wcPaint" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="3" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="9" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feGaussianBlur in="shape" stdDeviation="0.8" result="soft"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="2" seed="9" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -0.42 1.06" result="grainMask"/>
+      <feComposite in="soft" in2="grainMask" operator="in" result="pigment"/>
+      <feMorphology in="shape" operator="erode" radius="1.4" result="inner"/>
+      <feComposite in="shape" in2="inner" operator="out" result="rim"/>
+      <feGaussianBlur in="rim" stdDeviation="0.7" result="rimSoft"/>
+      <feColorMatrix in="rimSoft" type="matrix" values="0.72 0 0 0 0  0 0.72 0 0 0  0 0 0.72 0 0  0 0 0 0.55 0" result="pool"/>
+      <feMerge><feMergeNode in="pigment"/><feMergeNode in="pool"/></feMerge>
+    </filter>
+    <filter id="wcWash" x="-30%" y="-30%" width="160%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" seed="11" result="w"/>
+      <feDisplacementMap in="SourceGraphic" in2="w" scale="22" result="s"/>
+      <feGaussianBlur in="s" stdDeviation="5"/>
+    </filter>
+    <filter id="wcInk">
+      <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="2" seed="4" result="w"/>
+      <feDisplacementMap in="SourceGraphic" in2="w" scale="2.5"/>
+    </filter>
+  </defs>
+</svg>
 <div id="authRoot" hidden></div>
 <div id="onboardRoot" hidden></div>
 <div id="app" hidden>
   <aside class="sidebar">
     <div class="brand">
       <span data-brand-logo></span>
-      <div class="brand-text"><div class="brand-name" data-app-name></div><div class="brand-tag">Personal finance</div></div>
+      <div class="brand-text"><div class="brand-name" data-app-name></div></div>
     </div>
     <nav class="navlist" id="navList" aria-label="Main"></nav>
-    <div class="sidebar-art" id="sidebarArt">
-      <div class="sidebar-foot" id="sidebarFootText"></div>
-    </div>
+    <div class="sidebar-foot" id="sidebarFootText"></div>
   </aside>
   <div class="main-col">
     <header class="topbar" id="topbar">
       <div class="topbar-left">
         <div class="brand"><span data-brand-logo></span><div class="brand-text"><div class="brand-name" data-app-name></div></div></div>
-        <div class="month-switcher">
-          <button class="ms-btn" id="prevMonthBtn" aria-label="Previous month"></button>
-          <button class="ms-label" id="monthLabelBtn" aria-label="Choose month"><span id="msMonthLabel">January</span> <span class="yr" id="msYearLabel">2026</span></button>
-          <button class="ms-btn" id="nextMonthBtn" aria-label="Next month"></button>
-        </div>
+      </div>
+      <div class="top-search" role="search">
+        <span class="ts-ic" data-search-icon></span>
+        <input type="search" id="globalSearch" placeholder="Search transactions, bills, or goals…" aria-label="Search transactions, bills, goals, or debts" autocomplete="off">
+        <div class="search-results" id="searchResults" hidden></div>
       </div>
       <div class="topbar-right">
         <div class="sync-status mobile-only" data-sync-status role="status" aria-live="polite"></div>
         <div id="topChips" class="topbar-right"></div>
+        <div class="month-switcher month-pill">
+          <button class="ms-btn" id="prevMonthBtn" aria-label="Previous month"></button>
+          <button class="ms-label" id="monthLabelBtn" aria-label="Choose month"><span id="msMonthLabel">January</span> <span class="yr" id="msYearLabel">2026</span></button>
+          <button class="ms-btn" id="nextMonthBtn" aria-label="Next month"></button>
+        </div>
         <button class="btn btn-primary add-btn" id="addBtn" aria-label="Add"></button>
         <button class="bell-btn" id="alertBtn" aria-label="Alerts"></button>
         <button class="avatar-btn" id="avatarBtn" aria-label="Account menu"></button>

@@ -126,7 +126,7 @@
     }
     const scene = (typeof authSceneSVG==='function') ? `<div class="auth-scene"><div class="hand">Good plans,<br>brighter days ♡</div>${authSceneSVG()}</div>` : '';
     authRoot.innerHTML = `<div class="auth-screen"><div class="auth-split">${scene}<div class="auth-card">
-      <div class="brand auth-brand">${typeof brandLogoSVG==='function'?brandLogoSVG():''}<div class="brand-text"><div class="brand-name">${esc(appName)}</div><div class="brand-tag">Personal finance</div></div></div>
+      <div class="brand auth-brand">${typeof brandLogoSVG==='function'?brandLogoSVG():''}<div class="brand-text"><div class="brand-name">${esc(appName)}</div></div></div>
       ${inner}
       <p class="auth-foot">Your budget is private to your account. It’s stored securely in the cloud and never shared or sold.</p>
     </div></div></div>`;
