@@ -124,7 +124,14 @@
         <button class="btn btn-primary auth-submit" type="button" data-auth="retry">Try again</button>
         <div class="auth-links"><button type="button" class="linkbtn" data-auth="signout">Sign out</button></div>`;
     }
-    const scene = (typeof authSceneSVG==='function') ? `<div class="auth-scene"><div class="hand">Good plans,<br>brighter days ♡</div>${authSceneSVG()}</div>` : '';
+    const scene = `<div class="auth-scene">
+      <div class="auth-scene-text">
+        <div class="brand auth-kicker">${typeof brandLogoSVG==='function'?brandLogoSVG():''}<div class="brand-text"><div class="brand-name">${esc(appName)}</div></div></div>
+        <h1>A calmer way to <br>manage your money.</h1>
+        <p>Plan your budget, log what you spend, keep bills on time and watch your savings grow, on your phone and computer.</p>
+      </div>
+      <img class="auth-still" src="img/still-life.webp?v=3" alt="" aria-hidden="true" decoding="async">
+    </div>`;
     authRoot.innerHTML = `<div class="auth-screen"><div class="auth-split">${scene}<div class="auth-card">
       <div class="brand auth-brand">${typeof brandLogoSVG==='function'?brandLogoSVG():''}<div class="brand-text"><div class="brand-name">${esc(appName)}</div></div></div>
       ${inner}

@@ -1702,19 +1702,6 @@ function tileSprigSVG(tone, seed){
     ${t.flower ? wcFlowerSprig(70, 126, -22, 56, 3, s) : ''}
   </svg>`;
 }
-/* Sign-in scene: soft washes framed by slender branches and pink sprigs. */
-function authSceneSVG(){
-  return `<svg viewBox="0 0 400 560" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    <g filter="url(#wcWash)"><rect x="-40" y="-40" width="480" height="640" fill="#F5EEDF"/><ellipse cx="300" cy="110" rx="170" ry="90" fill="#E2EDF6" opacity=".8"/><path d="M150 160 C240 140 340 150 370 200 C380 300 360 360 300 380 C230 390 170 370 150 330 C136 270 136 200 150 160Z" fill="#F2D9CE" opacity=".6"/><ellipse cx="70" cy="490" rx="190" ry="110" fill="#E4EDDF" opacity=".9"/></g>
-    ${wcBranch({x:30, y:560, angle:10, len:500, curve:40, leaves:22, size:80, seed:11, grads:['lf-sage','lf-olive','lf-sage'], width:.2, spread:24, stemWidth:2})}
-    ${wcBranch({x:0, y:540, angle:30, len:360, curve:24, leaves:16, size:70, seed:61, grads:['lf-dusty','lf-pale'], width:.21, spread:28, opacity:.75})}
-    ${wcFlowerSprig(70, 420, 20, 160, 7, 4)}${wcFlowerSprig(36, 360, 34, 100, 4, 9, 'pt-blush')}
-    ${wcBranch({x:-10, y:570, angle:58, len:240, curve:-30, leaves:11, size:84, seed:5, grads:['lf-olive','lf-sage','lf-dusty'], width:.34, spread:40})}
-    ${wcBranch({x:190, y:576, angle:-36, len:190, curve:16, leaves:10, size:72, seed:19, grads:['lf-sage','lf-pale','lf-dusty'], width:.32, spread:42})}
-    ${wcBranch({x:410, y:-10, angle:212, len:260, curve:-30, leaves:14, size:62, seed:29, grads:['lf-sage','lf-dusty','lf-pale'], width:.2, spread:26})}
-    ${wcFlowerSprig(330, 60, 200, 90, 4, 12)}
-  </svg>`;
-}
 function heroArtSVG(){ return tileSprigSVG('nec', 3); }
 
 
